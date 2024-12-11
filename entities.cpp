@@ -662,7 +662,7 @@ void Game::Update(float _delta)
 	}
 
 	for(int i = 0; i < star_systems.size(); i++){
-		if(star_systems.start_x < Game::player.x - 2000){
+		if(star_systems.at(i).start_x < Game::player.x - 2000){
 			//star_systems.erase()
 		}
 	}
