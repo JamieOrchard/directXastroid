@@ -90,12 +90,19 @@ public:
 	float y = 0;
 
 	void Create();
+	void Destroy();
 };
 
 void Star::Create()
 {
 	x = std::rand() % 640;
 	y = std::rand() % 480;
+}
+
+void Star::Destroy()
+{
+	x = 0;
+	y = 0;
 }
 
 class SolarSystem
@@ -147,6 +154,14 @@ void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBr
 	float temp_end_x = temp_start_x + 1;
 	float temp_end_y = temp_start_y + 1;
 
+	if(temp_start_x < -640 || temp_start_x > 640)
+	{
+		if(temp_start_y < -480 || temp_start_y > 480)
+		{
+			return;
+		}
+	}
+
 	for(int i = 0; i < 100; i++)
 	{
 		Line new_line;
@@ -155,6 +170,11 @@ void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBr
 
 		_RenderTarget->DrawLine(new_line.start, new_line.end, _colour, 2);
 	}
+}
+
+void SolarSystem::Destroy()
+{
+
 }
 
 SolarSystem newSystem;
@@ -478,7 +498,7 @@ bool Player::HandleInput(WPARAM wParam, bool keyDown)
 		if(!down &&  keyDown){down = true;}
 		if( down && !keyDown){down = false;}
 	}
-		if(wParam == 0x41)
+	if(wParam == 0x41)
 	{
 		if(!left &&  keyDown){left = true;}
 		if( left && !keyDown){left = false;}
@@ -575,24 +595,6 @@ void Game::Init()
 	Astroid::InitalizePointList();
 	Player::InitalizePointList();
 	player.Create();
-
-	/*
-	float temp_x = -640;
-	float temp_y = -480;
-
-	for(int y = 0; y < 3; y++)
-	{
-		temp_x = -640;
-		for(int x = 0; x < 3; x++)
-		{
-			SolarSystem new_star_group;
-			new_star_group.AssignXY(temp_x, temp_y);
-			star_systems.push_back(new_star_group);
-			temp_x += 640;
-		}
-		temp_y += 480;
-	}
-	*/
 }
 
 void Game::Update(float _delta)
@@ -609,21 +611,12 @@ void Game::Update(float _delta)
 	float screen_width = 640;
 	float screen_height = 480;
 
-	/*
-	if(cameraOffsetX != 0){
-		if(Game::player.vecX < 0 ){temp_x = floor(cameraOffsetX / 640) * -640;}
-		if(Game::player.vecX > 0 ){temp_x = ceil(cameraOffsetX / 640) * -640;}
-	}
-	if(cameraOffsetY != 0){
-		if(Game::player.vecY < 0 ){temp_y = floor(cameraOffsetY / 480) * -480;}
-		if(Game::player.vecY > 0 ){temp_y = ceil(cameraOffsetY / 480) * -480;}
-	}
-	*/
+	if(cameraOffsetX != 0){temp_x = ceil(cameraOffsetX / screen_width);}
+	if(cameraOffsetY != 0){temp_y = ceil(cameraOffsetY / screen_height);}
 
-	if(cameraOffsetX != 0){temp_x = ceil(cameraOffsetX / 640);}
-	if(cameraOffsetY != 0){temp_y = ceil(cameraOffsetY / 640);}
-
-	if(star_systems.size() < 20)
+	
+	
+	if(star_systems.size() < 200)
 	{
 		for(int y = -1; y <= 1; y++)
 		{
@@ -631,41 +624,38 @@ void Game::Update(float _delta)
 			{
 				bool system_found = false;
 
-					for(auto stars: star_systems)
+				for(auto stars: star_systems)
+				{
+					if(stars.start_x == (temp_x  + x) * -screen_width && stars.start_y == (temp_y + y) * -screen_height)
 					{
-						if(stars.start_x == (temp_x  + x) * -640 && stars.start_y == (temp_y + y) * -480)
-						{
-							system_found = true;
-							break;
-						}
+						system_found = true;
+						break;
 					}
+				}
 
-					if(!system_found)
-					{
-						SolarSystem new_star_group;
-						new_star_group.AssignXY((temp_x + x) * -640, (temp_y + y) * -480);
-						star_systems.push_back(new_star_group);
-						printf("New Star Generated at X: %f Y: %f X2: %d Y2: %d\n", (temp_x + x) * -640, (temp_y + y) * -480, x, y);
-					}
+				if(!system_found)
+				{
+					SolarSystem new_star_group;
+					new_star_group.AssignXY((temp_x + x) * -screen_width, (temp_y + y) * -screen_height);
+					star_systems.push_back(new_star_group);
+				}
 
 			}
 		}
 	}
-	else
-	{
-		int count = 0;
-		for(auto stars: star_systems)
-		{
-			printf("Star_System At [%d] X: %f Y: %f\n", count, stars.start_x, stars.start_y);
-			count++;
-		}
-	}
+
 
 	for(int i = 0; i < star_systems.size(); i++){
-		if(star_systems.at(i).start_x < Game::player.x - 2000){
-			//star_systems.erase()
+		if(star_systems.at(i).start_x < -cameraOffsetX - 3000 || star_systems.at(i).start_x > -cameraOffsetX + 3000){
+			star_systems.erase(star_systems.begin() + i);
+			break;
+		}
+		if(star_systems.at(i).start_y < -cameraOffsetY - 3000 || star_systems.at(i).start_y > -cameraOffsetX + 3000)
+		{
+			star_systems.erase(star_systems.begin() + i);
 		}
 	}
+	
 
 }
 
