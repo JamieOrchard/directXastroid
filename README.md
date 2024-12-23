@@ -7,3 +7,8 @@ To Do:
 Add Collisions for Objects
 Add Shooting
 Add Particals
+
+----------------------------
+Player Co-ords files
+Each X and Y are paired with a space, new co-ords are on new lines.
+Game will automatically create paths between Co-Ords and will create path from final cord to the first cord.
