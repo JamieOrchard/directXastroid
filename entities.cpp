@@ -5,180 +5,6 @@
     #define M_PI 3.14159265358979323846
 #endif
 
-float cameraOffsetX = 0;
-float cameraOffsetY = 0;
-
-class Line
-{
-public:
-	D2D_POINT_2F start;
-	D2D_POINT_2F end;
-
-	Line();
-	~Line();
-
-	Line& operator=(const Line& other); //Copy Constructor
-	
-	void CenterTo(float pos);
-	void AdjustProjection(D2D_POINT_2F adjustment);
-	void RotateProjection(float x, float y, float rotation);
-};
-
-Line::Line()
-{
-	start = {0, 0};
-	end = {0,0};
-}
-
-Line::~Line()
-{
-	start = {0, 0};
-	end = {0, 0};
-}
-
-Line& Line::operator=(const Line& other)
-{	
-	start = other.start;
-	end = other.end;
-	return *this;
-}
-
-void Line::CenterTo(float pos)
-{
-	start.x -= pos;
-	start.y -= pos;
-	end.x -= pos;
-	end.y -= pos;
-}
-
-void Line::AdjustProjection(D2D_POINT_2F adjustment)
-{
-	start.x += adjustment.x;
-	start.y += adjustment.y;
-	end.x += adjustment.x;
-	end.y += adjustment.y;
-}
-
-void Line::RotateProjection(float x, float y, float rotation)
-{
-	float s = sin(rotation);
-	float c = cos(rotation);
-
-	//translate point back to origin
-	start.x -= x;
-	start.y -= y;
-	end.x -= x;
-	end.y -= y;
-
-	//rotate point
-	float xstartnew = start.x * c - start.y * s;
-	float ystartnew = start.x * s + start.y * c;
-	float xendnew = end.x * c - end.y * s;
-	float yendnew = end.x * s + end.y * c;
-
-	//translate points back
-	start.x = xstartnew + x;
-	start.y = ystartnew + y;
-	end.x = xendnew + x;
-	end.y = yendnew + y;
-}
-
-class Star
-{
-public:
-	float x = 0;
-	float y = 0;
-
-	void Create();
-	void Destroy();
-};
-
-void Star::Create()
-{
-	x = std::rand() % 640;
-	y = std::rand() % 480;
-}
-
-void Star::Destroy()
-{
-	x = 0;
-	y = 0;
-}
-
-class SolarSystem
-{
-public:
-
-	void Create();
-	void AssignXY(float _x, float _y);
-	void Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* _colour);
-	void Destroy();
-
-	float start_x = 0;
-	float start_y = 0;
-
-	Star star_map[100];
-};
-
-void SolarSystem::Create()
-{	
-	for(int i = 0; i < 100; i++)
-	{
-		bool overlap = false;
-
-		do
-		{
-			star_map[i].Create();
-			for(int j = 0; j < 100; j++)
-			{
-				if(star_map[i].x == star_map[j].x && star_map[i].y == star_map[j].y && i != j){overlap = true;}
-			}
-		}while(overlap);	
-	}
-}
-
-void SolarSystem::AssignXY(float _x, float _y)
-{
-	start_x = _x;
-	start_y = _y;
-
-	Create();
-}
-
-void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* _colour)
-{
-	//if(!initilized){return;}
-
-	float temp_start_x = start_x + cameraOffsetX;
-	float temp_start_y = start_y + cameraOffsetY;
-	float temp_end_x = temp_start_x + 1;
-	float temp_end_y = temp_start_y + 1;
-
-	if(temp_start_x < -640 || temp_start_x > 640)
-	{
-		if(temp_start_y < -480 || temp_start_y > 480)
-		{
-			return;
-		}
-	}
-
-	for(int i = 0; i < 100; i++)
-	{
-		Line new_line;
-		new_line.start = D2D1::Point2F(star_map[i].x + temp_start_x, star_map[i].y + temp_start_y);
-		new_line.end = D2D1::Point2F(star_map[i].x + temp_end_x, star_map[i].y + temp_end_y);
-
-		_RenderTarget->DrawLine(new_line.start, new_line.end, _colour, 2);
-	}
-}
-
-void SolarSystem::Destroy()
-{
-
-}
-
-SolarSystem newSystem;
-
 class Astroid
 {
 public:
@@ -189,7 +15,7 @@ public:
 	void Destroy();
 
 	void Update(float _dt);
-	void Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* _colour);
+	void Render(ID2D1HwndRenderTarget* _RenderTarget);
 
 	void IncreaseX(float _x);
 	void IncreaseRot(float _rot);
@@ -202,6 +28,7 @@ public:
 
 	int GetSize();
 	int GetCollisionSize();
+	bool CheckCollision(float _x, float _y);
 
 	bool GetImmune();
 
@@ -341,28 +168,25 @@ void Astroid::Update(float _dt)
 	else{immunity_timer = immunity_timer - _dt;}
 }
 
-void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* _colour)
+void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
-	for(auto astroid: astroid_list)
-	{
-		std::vector<Line>* astroid_size;
-		if(astroid.size == 3){astroid_size = &astroid_size_3;}
-		if(astroid.size == 2){astroid_size = &astroid_size_2;}
-		if(astroid.size == 1){astroid_size = &astroid_size_1;}
-		if(astroid.size == 0){continue;} //Safety
+	std::vector<Line>* astroid_size;
+	if(size == 3){astroid_size = &astroid_size_3;}
+	if(size == 2){astroid_size = &astroid_size_2;}
+	if(size == 1){astroid_size = &astroid_size_1;}
+	if(size == 0){return;} //Safety
 
-		for(auto i: *astroid_size)
-		{
-			Line tempLine;
-			tempLine = i;
-			D2D_POINT_2F newPoint = {astroid.x + cameraOffsetX, astroid.y + cameraOffsetY};
-			tempLine.AdjustProjection(newPoint);
-			int centerPoint = 4;
-			centerPoint = centerPoint << astroid.size; //Bit Shift based on size
-			tempLine.CenterTo(centerPoint);
-			tempLine.RotateProjection(astroid.x + cameraOffsetX, astroid.y + cameraOffsetY, astroid.rotation);
-			_RenderTarget->DrawLine(tempLine.start, tempLine.end, _colour, 2);
-		}
+	for(auto i: *astroid_size)
+	{
+		Line tempLine;
+		tempLine = i;
+		D2D_POINT_2F newPoint = {x + cameraOffsetX, y + cameraOffsetY};
+		tempLine.AdjustProjection(newPoint);
+		int centerPoint = 4;
+		centerPoint = centerPoint << size; //Bit Shift based on size
+		tempLine.CenterTo(centerPoint);
+		tempLine.RotateProjection(x + cameraOffsetX, y + cameraOffsetY, rotation);
+		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["CYAN"], 2);
 	}
 }	
 
@@ -417,14 +241,28 @@ int Astroid::GetCollisionSize()
 	switch(size)
 	{
 		case 3:
-			return 30;
+			return 35;
 		case 2:
-			return 15;
+			return 20;
 		case 1:
-			return 5;
+			return 10;
 		default:
 			return 0;
 	}
+}
+
+bool Astroid::CheckCollision(float _x, float _y)
+{
+	int a = _x - x;
+	int b = _y - y;
+	int c = sqrt(a*a + b*b);
+
+	if(c < GetCollisionSize()){
+		Hit();
+		return true;
+	}
+
+	return false;
 }
 
 void UpdateAstroidList(float dt)
@@ -437,6 +275,55 @@ void UpdateAstroidList(float dt)
 
 std::vector<Line> playerLines;
 
+class Bullet
+{
+public:
+	float x = 0;
+	float y = 0;
+
+	float vecX = 0;
+	float vecY = 0;
+	float speed = 400;
+
+	float MAX_LIFESPAN = 5;
+	float current_life = 0;
+
+	void Create(float _x, float _y, float _vecX, float _vecY);
+	void Update(float _dt);
+	void Render(ID2D1HwndRenderTarget* _RenderTarget);
+	bool CheckAlive();
+	void Destroy();
+};
+
+void Bullet::Create(float _x, float _y, float _vecX, float _vecY)
+{
+	x = _x - cameraOffsetX;
+	y = _y - cameraOffsetY;
+	vecX = _vecX;
+	vecY = _vecY;
+}
+
+void Bullet::Update(float _dt)
+{
+	x += (vecX * speed) * _dt;
+	y += (vecY * speed) * _dt;
+	current_life = current_life + _dt;	
+}
+
+void Bullet::Render(ID2D1HwndRenderTarget* _RenderTarget)
+{
+	Line new_line;
+	new_line.start = D2D1::Point2F(x + cameraOffsetX, y + cameraOffsetY);
+	new_line.end = D2D1::Point2F(x + cameraOffsetX + (10 * vecX) , y + cameraOffsetY + (10 * vecY));
+	_RenderTarget->DrawLine(new_line.start, new_line.end, COLOURS::palette["RED"], 2);
+}
+
+bool Bullet::CheckAlive()
+{
+	if(MAX_LIFESPAN > current_life){return true;}
+	return false;
+}
+
 class Player
 {
 public:
@@ -446,23 +333,29 @@ public:
 	bool down = false;
 	bool left = false;
 	bool right = false;
+	bool fire = false;
 
-	float start_x = 250;
-	float start_y = 250;
+	float start_x = 640/2;
+	float start_y = 480/2;
 	float x = 0;
 	float y = 0;
 	float rotation = 0;
 
 	float vecX = 0;
 	float vecY = 0;
-	float VECMOD = 1;
-	float VECMAX = 100;
+	float VECMOD = 10;
+	float VECMAX = 200;
 	float ROTSPEED = 2;
+
+	D2D_RECT_F movement_box;
+
+	std::vector<Bullet> player_bullets;
+	int PLAYER_BULLETS_MAX = 20;
 	
 	void Create();
 	bool HandleInput(WPARAM, bool);
 	void Update(float _dt);
-	void Render(ID2D1HwndRenderTarget*, ID2D1SolidColorBrush*);
+	void Render(ID2D1HwndRenderTarget*);
 
 };
 
@@ -482,8 +375,13 @@ void Player::InitalizePointList()
 
 void Player::Create()
 {
-	x = 250;
-	y = 250;
+	x = 640 / 2;
+	y = 480 / 2;
+
+	movement_box.left = 310;
+	movement_box.top = 230;
+	movement_box.right = 330;
+	movement_box.bottom = 250;
 }
 
 bool Player::HandleInput(WPARAM wParam, bool keyDown)
@@ -508,6 +406,10 @@ bool Player::HandleInput(WPARAM wParam, bool keyDown)
 		if(!right &&  keyDown){right = true;}
 		if( right && !keyDown){right = false;}
 	}
+	if(wParam == 0x20)
+	{
+		if(!keyDown){fire = true;}
+	}
 
 
 	return false;
@@ -515,15 +417,9 @@ bool Player::HandleInput(WPARAM wParam, bool keyDown)
 
 void Player::Update(float _dt)
 {
-	//Declare some setup variables once
-	float VECMODDT = VECMOD * _dt;
-
 	//Check input and clamp rotations
 	if(left){rotation -= ROTSPEED * _dt;}
 	if(right){rotation += ROTSPEED * _dt;}
-
-	//Change readable degrees to Radians
-	//float radians = rotation * (M_PI / 180);
 
 	//Find the projected vector if the player is moving in that direction
 	float unitVecX = cos(rotation - 1.57);
@@ -531,18 +427,13 @@ void Player::Update(float _dt)
 
 	//Apply projected vector if key is pressed
 	if(up){
-		vecX -= unitVecX;
-		vecY -= unitVecY;
+		vecX -= unitVecX * VECMOD;
+		vecY -= unitVecY * VECMOD;
 
-		//Clamp movement vector based on rotation have the ABS to deal with negative values inversions)
-		/*
-		float vecMaxX = abs(unitVecX * VECMAX);
-		float vecMaxY = abs(unitVecY * VECMAX);
-		if(vecX >  vecMaxX){vecX = -vecMaxX;}
-		if(vecX < -vecMaxX){vecX =  vecMaxX;}
-		if(vecY >  vecMaxY){vecY = -vecMaxY;}
-		if(vecY < -vecMaxY){vecY =  vecMaxY;}
-		*/
+		if(vecX >  VECMAX * unitVecX){vecX =  VECMAX * unitVecX;}
+		if(vecX < -VECMAX * unitVecX){vecX = -VECMAX * unitVecX;}
+		if(vecY >  VECMAX * unitVecY){vecY =  VECMAX * unitVecY;}
+		if(vecY < -VECMAX * unitVecY){vecY = -VECMAX * unitVecY;}
 	}
 	if(!up){
 		if(vecX < VECMOD && vecX > -VECMOD){vecX = 0;}
@@ -557,15 +448,40 @@ void Player::Update(float _dt)
 		}
 	}
 
-	//Apple movement vector to posistion
-	x += vecX * _dt;
-	y += vecY * _dt;
+	//Apply movement vector to posistion
+	cameraOffsetX += vecX * _dt;
+	cameraOffsetY += vecY * _dt;
 
-	cameraOffsetX = x;
-	cameraOffsetY = y;
+	//Bullet Handling
+	if(fire)
+	{
+		fire = false;
+		if(player_bullets.size() < PLAYER_BULLETS_MAX){
+			Bullet new_bullet;
+			new_bullet.Create(start_x, start_y, unitVecX, unitVecY);
+			player_bullets.push_back(new_bullet);
+		}
+	}
+
+	if(!player_bullets.empty()){
+		for(int i = 0; i < player_bullets.size(); i++){
+			if(!player_bullets.at(i).CheckAlive())
+			{
+				player_bullets.erase(player_bullets.begin() + i);
+				break;
+			}
+		}
+	}
+
+	int count = 0;
+	for(auto& bullet: player_bullets)
+	{
+		bullet.Update(_dt);
+		count++;
+	}
 }
 
-void Player::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* _colour)
+void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
 	for(auto i: playerLines)
 	{
@@ -576,87 +492,15 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* 
 		int centerPoint = 16;
 		tempLine.CenterTo(centerPoint);
 		tempLine.RotateProjection(start_x, start_y, rotation);
-		_RenderTarget->DrawLine(tempLine.start, tempLine.end, _colour, 2);
+		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
 	}
-}
 
-namespace Game
-{
-	Player player;
-	std::vector<SolarSystem> star_systems;
+	//_RenderTarget->DrawRectangle(&movement_box, COLOURS::palette["GREY"]);
 
-	void Init();
-	void Update(float _delta);
-	void Render();
-}
-
-void Game::Init()
-{
-	Astroid::InitalizePointList();
-	Player::InitalizePointList();
-	player.Create();
-}
-
-void Game::Update(float _delta)
-{
-
-	player.Update(_delta);
-
-	//Update rendering of stars, generate new and remove old.
-	//Get the X camera offset divide by 640 then times it by the ceil version should give the start_x closest to the camera
-	
-	float temp_x = 0;
-	float temp_y = 0;
-
-	float screen_width = 640;
-	float screen_height = 480;
-
-	if(cameraOffsetX != 0){temp_x = ceil(cameraOffsetX / screen_width);}
-	if(cameraOffsetY != 0){temp_y = ceil(cameraOffsetY / screen_height);}
-
-	
-	
-	if(star_systems.size() < 200)
+	for(auto& i: player_bullets)
 	{
-		for(int y = -1; y <= 1; y++)
-		{
-			for(int x = -1; x <= 1; x++)
-			{
-				bool system_found = false;
-
-				for(auto stars: star_systems)
-				{
-					if(stars.start_x == (temp_x  + x) * -screen_width && stars.start_y == (temp_y + y) * -screen_height)
-					{
-						system_found = true;
-						break;
-					}
-				}
-
-				if(!system_found)
-				{
-					SolarSystem new_star_group;
-					new_star_group.AssignXY((temp_x + x) * -screen_width, (temp_y + y) * -screen_height);
-					star_systems.push_back(new_star_group);
-				}
-
-			}
-		}
+		i.Render(_RenderTarget);
 	}
-
-
-	for(int i = 0; i < star_systems.size(); i++){
-		if(star_systems.at(i).start_x < -cameraOffsetX - 3000 || star_systems.at(i).start_x > -cameraOffsetX + 3000){
-			star_systems.erase(star_systems.begin() + i);
-			break;
-		}
-		if(star_systems.at(i).start_y < -cameraOffsetY - 3000 || star_systems.at(i).start_y > -cameraOffsetX + 3000)
-		{
-			star_systems.erase(star_systems.begin() + i);
-		}
-	}
-	
-
 }
 
 #endif

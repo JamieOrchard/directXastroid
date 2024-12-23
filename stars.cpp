@@ -29,7 +29,7 @@ public:
 
 	void Create();
 	void AssignXY(float _x, float _y);
-	void Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* _colour);
+	void Render(ID2D1HwndRenderTarget* _RenderTarget);
 	void Destroy();
 
 	float start_x = 0;
@@ -50,16 +50,14 @@ void SolarSystem::AssignXY(float _x, float _y)
 	Create();
 }
 
-void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBrush* _colour)
+void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
-	//if(!initilized){return;}
-
 	float temp_start_x = start_x + cameraOffsetX;
 	float temp_start_y = start_y + cameraOffsetY;
 	float temp_end_x = temp_start_x + 1;
 	float temp_end_y = temp_start_y + 1;
 
-	//If offscreen do not render
+	//if offscreen do not render
 	if(temp_start_x < -640 || temp_start_x > 640)
 	{
 		if(temp_start_y < -480 || temp_start_y > 480)
@@ -74,7 +72,7 @@ void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget, ID2D1SolidColorBr
 		new_line.start = D2D1::Point2F(star_map[i].x + temp_start_x, star_map[i].y + temp_start_y);
 		new_line.end = D2D1::Point2F(star_map[i].x + temp_end_x, star_map[i].y + temp_end_y);
 
-		_RenderTarget->DrawLine(new_line.start, new_line.end, _colour, 2);
+		_RenderTarget->DrawLine(new_line.start, new_line.end, COLOURS::palette["GREY"], 2);
 	}
 }
 

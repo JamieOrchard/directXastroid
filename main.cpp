@@ -20,6 +20,7 @@ cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib /EHsc
 //C++ Runetime Header Files
 #include <vector>
 #include <iostream>
+#include <map>
 
 //Direct2d headers
 #include <d2d1.h>
@@ -27,8 +28,15 @@ cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib /EHsc
 #include <dwrite.h>
 #include <wincodec.h>
 
+float cameraOffsetX = 0;
+float cameraOffsetY = 0;
+
 //Game headers
+#include "colours.cpp"
+#include "geometry.cpp"
+#include "stars.cpp"
 #include "entities.cpp"
+#include "game.cpp"
 
 //Declaring additional functions for releasing interfaces
 template<class Interface>
@@ -62,7 +70,7 @@ float delta = 0;
 int64_t current_time = 0;
 
 //CONST GLOBALS
-CONST INT ASTROID_MAX_COUNT = 50;
+CONST INT ASTROID_MAX_COUNT = 1;
 
 //Declaring methods for initalising the class, creating and discarding resources, 
 //handling the message loop, rendering content and the window procedure
@@ -84,8 +92,6 @@ public:
 
 	//Logic update loop
 	static void UpdateLoop();
-
-
 
 private:
 	//Initialize device-independent resources
@@ -109,11 +115,6 @@ private:
 	HWND m_hwnd;
 	ID2D1Factory* m_pDirect2dFactory;
 	ID2D1HwndRenderTarget* m_pRenderTarget;
-	ID2D1SolidColorBrush* m_pLightSlateGrayBrush;
-	ID2D1SolidColorBrush* m_pCornflowerBlueBrush;
-	ID2D1SolidColorBrush* m_pRedBrush;
-	ID2D1SolidColorBrush* m_pGreenBrush;
-	ID2D1SolidColorBrush* m_pWhiteBrush;
 };
 
 float addition = 0;
@@ -122,9 +123,7 @@ float addition = 0;
 DemoApp::DemoApp() :
 	m_hwnd(NULL),
 	m_pDirect2dFactory(NULL),
-	m_pRenderTarget(NULL),
-	m_pLightSlateGrayBrush(NULL),
-	m_pCornflowerBlueBrush(NULL)
+	m_pRenderTarget(NULL)
 {}
 
 //Default Destructor
@@ -132,8 +131,6 @@ DemoApp::~DemoApp()
 {
 	SafeRelease(&m_pDirect2dFactory);
 	SafeRelease(&m_pRenderTarget);
-	SafeRelease(&m_pLightSlateGrayBrush);
-	SafeRelease(&m_pCornflowerBlueBrush);
 }
 
 //Message handler
@@ -254,32 +251,8 @@ HRESULT DemoApp::CreateDeviceResources()
 			D2D1::HwndRenderTargetProperties(m_hwnd, size),
 			&m_pRenderTarget);
 
-		if(SUCCEEDED(hr))
-		{
-			//Create grey brush
-			hr = m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::LightSlateGray),
-				&m_pLightSlateGrayBrush);
-
-			//Craete blue brush
-			hr = m_pRenderTarget->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::CornflowerBlue),
-				&m_pCornflowerBlueBrush);
-
-			//Create white brush
-			hr = m_pRenderTarget->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::White),
-				&m_pWhiteBrush);
-
-			//Create red brush
-			hr = m_pRenderTarget->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::Red),
-				&m_pRedBrush);
-
-			//Create green brush
-			hr = m_pRenderTarget->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::Green),
-				&m_pGreenBrush);
-		}
+		//Initalise the Colours
+		if(SUCCEEDED(hr)){COLOURS::Init(m_pRenderTarget);}
 	}
 
 	return hr;
@@ -288,11 +261,7 @@ HRESULT DemoApp::CreateDeviceResources()
 void DemoApp::DiscardDeviceResources()
 {
 	SafeRelease(&m_pRenderTarget);
-	SafeRelease(&m_pLightSlateGrayBrush);
-	SafeRelease(&m_pCornflowerBlueBrush);
-	SafeRelease(&m_pRedBrush);
-	SafeRelease(&m_pGreenBrush);
-	SafeRelease(&m_pWhiteBrush);
+	COLOURS::Deinit();
 }
 
 //
@@ -312,10 +281,7 @@ HRESULT DemoApp::OnRender()
 		//Retrieve the drawing area
 		D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
 
-		//Draw the Stars, Astroids and Player
-		for(auto stars: Game::star_systems){stars.Render(m_pRenderTarget, m_pWhiteBrush);}
-		for(auto astroid : astroid_list){astroid.Render(m_pRenderTarget, m_pCornflowerBlueBrush);}
-		Game::player.Render(m_pRenderTarget, m_pLightSlateGrayBrush);
+		Game::Render(m_pRenderTarget);
 
 
 
@@ -418,13 +384,13 @@ LRESULT CALLBACK DemoApp::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
 				case WM_KEYDOWN:
 				{
-					wasHandled = Game::player.HandleInput(wParam, true);
+					wasHandled = Game::HandleInput(wParam, true);
 					break;
 				}
 				
 				case WM_KEYUP:
 				{
-					wasHandled = Game::player.HandleInput(wParam, false);
+					wasHandled = Game::HandleInput(wParam, false);
 					break;
 				}
 			}
@@ -444,40 +410,7 @@ void DemoApp::UpdateLoop()
 	QueryPerformanceCounter((LARGE_INTEGER*)&current_time);
 	delta = (current_time - prev_time) * sec_per_count;
 
-	int count = 0;
-	for(int i = 0; i < astroid_list.size(); i++)
-	{
-		if(astroid_list.at(i).GetSize() == 3){count++;}
-	}
-	if(count < ASTROID_MAX_COUNT)
-	{
-		for(int i = 0; i < ASTROID_MAX_COUNT - count; i++)
-		{
-			Astroid newAstroid;
-			newAstroid.Create();
-			astroid_list.push_back(newAstroid);
-		}
-	}
-
 	Game::Update(delta);
-	
-	//Circle Collision vs Point
-	POINT p = mousePos;
-	for(int i = 0; i < astroid_list.size(); i++)
-	{
-		int a = p.x - astroid_list.at(i).GetX();
-		int b = p.y - astroid_list.at(i).GetY();
-		int c = sqrt(a*a + b*b);
-
-		if(c < astroid_list.at(i).GetCollisionSize() && !astroid_list.at(i).GetImmune())
-		{
-			astroid_list.at(i).Hit();
-			astroid_list.erase(astroid_list.begin() + i);
-			break;
-		}
-	}
-	
-	UpdateAstroidList(delta);
 
 	QueryPerformanceCounter((LARGE_INTEGER*)&prev_time);
 }
