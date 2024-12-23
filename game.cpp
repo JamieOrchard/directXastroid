@@ -20,8 +20,10 @@ namespace Game
 void Game::Init()
 {
 	Astroid::InitalizePointList();
-	Player::InitalizePointList();
+	//Player::InitalizePointList();
 	player.Create();
+
+	GeometricShapes::InitalizePlayerLines();
 }
 
 void Game::Update(float _delta)

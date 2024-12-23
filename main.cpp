@@ -18,6 +18,7 @@ cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib /EHsc
 #include <io.h>
 
 //C++ Runetime Header Files
+#include <string>
 #include <vector>
 #include <iostream>
 #include <map>
@@ -34,6 +35,7 @@ float cameraOffsetY = 0;
 //Game headers
 #include "colours.cpp"
 #include "geometry.cpp"
+#include "particles.cpp"
 #include "stars.cpp"
 #include "entities.cpp"
 #include "game.cpp"

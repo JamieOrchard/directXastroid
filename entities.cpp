@@ -327,7 +327,7 @@ bool Bullet::CheckAlive()
 class Player
 {
 public:
-	static void InitalizePointList();
+	//static void InitalizePointList();
 	
 	bool up = false;
 	bool down = false;
@@ -356,9 +356,9 @@ public:
 	bool HandleInput(WPARAM, bool);
 	void Update(float _dt);
 	void Render(ID2D1HwndRenderTarget*);
-
 };
 
+/*
 void Player::InitalizePointList()
 {
 	Line new_line;
@@ -372,6 +372,7 @@ void Player::InitalizePointList()
 	new_line.end = D2D1::Point2F(15, 0);
 	playerLines.push_back(new_line);
 }
+*/
 
 void Player::Create()
 {
@@ -483,7 +484,7 @@ void Player::Update(float _dt)
 
 void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
-	for(auto i: playerLines)
+	for(auto i: GeometricShapes::player)
 	{
 		Line tempLine;
 		tempLine = i;

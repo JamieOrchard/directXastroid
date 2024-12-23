@@ -76,4 +76,64 @@ void Line::RotateProjection(float x, float y, float rotation)
 	end.y = yendnew + y;
 }
 
+namespace GeometricShapes
+{
+	std::vector<Line> player;
+	std::vector<Line> astroids_size_1;
+	std::vector<Line> astroids_size_2;
+	std::vector<Line> astroids_size_3;
+
+	bool GetCordFromFile(FILE* _file, std::vector<D2D_POINT_2U>& _cords);
+	void InitalizePlayerLines();
+	void InitalizeAstroidLines();
+}
+
+bool GeometricShapes::GetCordFromFile(FILE* _file, std::vector<D2D_POINT_2U>& _cords)
+{
+	if(_file == NULL){
+		return false;
+	}
+
+	int x = 0;
+	int y = 0;
+	while(fscanf(_file, "%u %u", &x, &y) != EOF){
+		D2D_POINT_2U cord = D2D1::Point2U(x,y);
+		_cords.push_back(cord);
+	}
+
+	return true;
+}
+
+void GeometricShapes::InitalizePlayerLines()
+{
+	FILE *file;
+	file = fopen("DATA\\player.txt", "r");
+
+	std::vector<D2D_POINT_2U>cord_list;
+	GetCordFromFile(file, cord_list);	
+	
+	//Generate Paths
+	for(int i = 0; i < cord_list.size(); i++)
+	{
+		Line new_line;
+		new_line.start = D2D1::Point2F(cord_list.at(i).x, cord_list.at(i).y);
+
+		if(i + 1 >= cord_list.size()){
+			new_line.end = D2D1::Point2F(cord_list.at(0).x, cord_list.at(0).y);
+		}
+		else{
+			new_line.end = D2D1::Point2F(cord_list.at(i + 1).x, cord_list.at(i + 1).y);
+		}
+
+		player.push_back(new_line);
+	}
+
+	fclose(file);
+}
+
+void GeometricShapes::InitalizeAstroidLines()
+{
+
+}
+
 #endif
