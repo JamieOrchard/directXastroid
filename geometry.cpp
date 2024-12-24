@@ -84,15 +84,14 @@ namespace GeometricShapes
 	std::vector<Line> astroids_size_3;
 
 	bool GetCordFromFile(FILE* _file, std::vector<D2D_POINT_2U>& _cords);
+	void GeneratePaths(std::vector<D2D_POINT_2U> &_cords, std::vector<Line>& _paths);
 	void InitalizePlayerLines();
 	void InitalizeAstroidLines();
 }
 
 bool GeometricShapes::GetCordFromFile(FILE* _file, std::vector<D2D_POINT_2U>& _cords)
 {
-	if(_file == NULL){
-		return false;
-	}
+	if(_file == NULL){return false;}
 
 	int x = 0;
 	int y = 0;
@@ -104,36 +103,68 @@ bool GeometricShapes::GetCordFromFile(FILE* _file, std::vector<D2D_POINT_2U>& _c
 	return true;
 }
 
+void GeometricShapes::GeneratePaths(std::vector<D2D_POINT_2U> &_cords, std::vector<Line>& _paths)
+{
+	for(int i = 0; i < _cords.size(); i++)
+	{
+		Line new_line;
+		new_line.start = D2D1::Point2F(_cords.at(i).x, _cords.at(i).y);
+
+		if(i + 1 >= _cords.size()){
+			new_line.end = D2D1::Point2F(_cords.at(0).x, _cords.at(0).y);
+		}
+		else{
+			new_line.end = D2D1::Point2F(_cords.at(i + 1).x, _cords.at(i + 1).y);
+		}
+
+		_paths.push_back(new_line);
+	}
+}
+
 void GeometricShapes::InitalizePlayerLines()
 {
 	FILE *file;
 	file = fopen("DATA\\player.txt", "r");
 
 	std::vector<D2D_POINT_2U>cord_list;
-	GetCordFromFile(file, cord_list);	
-	
-	//Generate Paths
-	for(int i = 0; i < cord_list.size(); i++)
-	{
-		Line new_line;
-		new_line.start = D2D1::Point2F(cord_list.at(i).x, cord_list.at(i).y);
-
-		if(i + 1 >= cord_list.size()){
-			new_line.end = D2D1::Point2F(cord_list.at(0).x, cord_list.at(0).y);
-		}
-		else{
-			new_line.end = D2D1::Point2F(cord_list.at(i + 1).x, cord_list.at(i + 1).y);
-		}
-
-		player.push_back(new_line);
+	if(!GetCordFromFile(file, cord_list)){
+		printf("ERROR: Failed to open file player.txt\n");
+		return;
 	}
-
+	GeneratePaths(cord_list, player);
 	fclose(file);
 }
 
 void GeometricShapes::InitalizeAstroidLines()
 {
+	std::vector<D2D_POINT_2U>cord_list;
 
+	FILE *file;
+	file = fopen("DATA\\astroid_3.txt", "r");
+	if(!GetCordFromFile(file, cord_list)){
+		printf("ERROR: Failed to open file astroid_3.txt\n");
+		return;
+	}
+	GeneratePaths(cord_list, astroids_size_3);
+	cord_list.clear();
+	fclose(file);
+
+	file = fopen("DATA\\astroid_2.txt", "r");
+	if(!GetCordFromFile(file, cord_list)){
+		printf("ERROR: Failed to open file astroid_3.txt\n");
+		return;
+	}
+	GeneratePaths(cord_list, astroids_size_2);
+	cord_list.clear();
+	fclose(file);
+
+	file = fopen("DATA\\astroid_1.txt", "r");
+	if(!GetCordFromFile(file, cord_list)){
+		printf("ERROR: Failed to open file astroid_3.txt\n");
+		return;
+	}
+	GeneratePaths(cord_list, astroids_size_1);
+	fclose(file);
 }
 
 #endif

@@ -8,8 +8,6 @@
 class Astroid
 {
 public:
-	static void InitalizePointList();
-
 
 	void Create();
 	void Destroy();
@@ -32,7 +30,7 @@ public:
 
 	bool GetImmune();
 
-	void Hit();
+	void Hit(std::vector<Astroid>& _astroidBuffer);
 	
 
 private:
@@ -46,74 +44,11 @@ private:
 	bool immune = true;
 	float immunity_timer = 3;
 	float immunity_max_timer = 1;
+
+	static const int BORDER_BOUNDARIES = 200;
 };
 
-std::vector<Line> astroid_size_3;
-std::vector<Line> astroid_size_2;
-std::vector<Line> astroid_size_1;
-std::vector<Line> astroidLineList;
-std::vector<Astroid> astroid_list;
 int astroid_collision_size[] = {5, 10, 30};
-
-void Astroid::InitalizePointList()
-{
-	//Astroid Size 3
-	Line new_line;
-	new_line.start = D2D1::Point2F(31, 4);
-	new_line.end = D2D1::Point2F(60, 20);
-	astroid_size_3.push_back(new_line);
-	new_line.start = D2D1::Point2F(60,21);
-	new_line.end = D2D1::Point2F(56,60);
-	astroid_size_3.push_back(new_line);
-	new_line.start = D2D1::Point2F(56,61);
-	new_line.end = D2D1::Point2F(5,56);
-	astroid_size_3.push_back(new_line);
-	new_line.start = D2D1::Point2F(5,55);
-	new_line.end = D2D1::Point2F(8,28);
-	astroid_size_3.push_back(new_line);
-	new_line.start = D2D1::Point2F(8,27);
-	new_line.end = D2D1::Point2F(6,17);
-	astroid_size_3.push_back(new_line);
-	new_line.start = D2D1::Point2F(6,16);
-	new_line.end = D2D1::Point2F(31,4);
-	astroid_size_3.push_back(new_line);
-
-	//Astroid Size 2
-	// 15,4 ; 27,13 ; 27,27 ; 3, 29; 7,4
-	new_line.start = D2D1::Point2F(15,4);
-	new_line.end = D2D1::Point2F(27,13);
-	astroid_size_2.push_back(new_line);
-	new_line.start = D2D1::Point2F(27,13);
-	new_line.end = D2D1::Point2F(27,27);
-	astroid_size_2.push_back(new_line);
-	new_line.start = D2D1::Point2F(27,27);
-	new_line.end = D2D1::Point2F(3,29);
-	astroid_size_2.push_back(new_line);
-	new_line.start = D2D1::Point2F(3,29);
-	new_line.end = D2D1::Point2F(7,4);
-	astroid_size_2.push_back(new_line);
-	new_line.start = D2D1::Point2F(7,4);
-	new_line.end = D2D1::Point2F(15,4);
-	astroid_size_2.push_back(new_line);
-
-	//Astroid Size 1
-	// 9,1; 13,6; 10,14; 2,11; 3,7
-	new_line.start = D2D1::Point2F(9,1);
-	new_line.end = D2D1::Point2F(13,6);
-	astroid_size_1.push_back(new_line);
-	new_line.start = D2D1::Point2F(13,6);
-	new_line.end = D2D1::Point2F(10,14);
-	astroid_size_1.push_back(new_line);
-	new_line.start = D2D1::Point2F(10,14);
-	new_line.end = D2D1::Point2F(2,11);
-	astroid_size_1.push_back(new_line);
-	new_line.start = D2D1::Point2F(2,11);
-	new_line.end = D2D1::Point2F(3,7);
-	astroid_size_1.push_back(new_line);
-	new_line.start = D2D1::Point2F(3,7);
-	new_line.end = D2D1::Point2F(9,1);
-	astroid_size_1.push_back(new_line);
-}
 
 void Astroid::Create()
 {
@@ -123,13 +58,13 @@ void Astroid::Create()
 	//Spawn above
 	if(direction == 0){
 		y = -32;
-		x = std::rand() % 640;
+		x = (std::rand() % 640);
 		vecX = cos(rotation);
 		vecY = sin(rotation); 
 	}
 	//Spawn Right
 	if(direction == 1){
-		y = std::rand() % 480;
+		y = (std::rand() % 480);
 		x = 640;
 		vecX = -cos(rotation);
 		vecY =  sin(rotation);
@@ -137,43 +72,43 @@ void Astroid::Create()
 	//Spawn Down
 	if(direction == 2){
 		y = 600;
-		x = std::rand() % 640;
+		x = (std::rand() % 640);
 		vecX = cos(rotation);
 		vecY = -sin(rotation);
 	} 
 	//Spawn Left
 	if(direction == 3){
-		y = std::rand() % 480;
-		x = -100;
+		y = (std::rand() % 480);
+		x = -32;
 		vecX = cos(rotation);
 		vecY = sin(rotation);
 	}
 
-	x += cameraOffsetX;
-	y += cameraOffsetY;
+	x -= cameraOffsetX;
+	y -= cameraOffsetY;
 }
 
 void Astroid::Update(float _dt)
 {
-	x += vecX * (_dt * 50);
-	y += vecY * (_dt * 50);
+	x += vecX * (_dt * (rotationSpeed * 20));
+	y += vecY * (_dt * (rotationSpeed * 20));
 	rotation += rotationSpeed * _dt;
 
-	if(vecX > 0 && x + cameraOffsetX > 700){Create();}
-	if(vecX < 0 && x + cameraOffsetX < -100){Create();}
-	if(vecY > 0 && y + cameraOffsetY > 500){Create();}
-	if(vecY < 0 && y + cameraOffsetY < -100){Create();}
+	if(vecX > 0 && x + cameraOffsetX >  640 + BORDER_BOUNDARIES){Create();}
+	if(vecX < 0 && x + cameraOffsetX <    0 - BORDER_BOUNDARIES){Create();}
+	if(vecY > 0 && y + cameraOffsetY >  480 + BORDER_BOUNDARIES){Create();}
+	if(vecY < 0 && y + cameraOffsetY <    0 - BORDER_BOUNDARIES){Create();}
 
 	if(immune && immunity_timer < 0){immune = false;}
-	else{immunity_timer = immunity_timer - _dt;}
+	else{immunity_timer = immunity_timer - _dt;}	
 }
 
 void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
 	std::vector<Line>* astroid_size;
-	if(size == 3){astroid_size = &astroid_size_3;}
-	if(size == 2){astroid_size = &astroid_size_2;}
-	if(size == 1){astroid_size = &astroid_size_1;}
+	if(size == 3){astroid_size = &GeometricShapes::astroids_size_3;}
+	if(size == 2){astroid_size = &GeometricShapes::astroids_size_2;}
+	if(size == 1){astroid_size = &GeometricShapes::astroids_size_1;}
 	if(size == 0){return;} //Safety
 
 	for(auto i: *astroid_size)
@@ -191,7 +126,7 @@ void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget)
 }	
 
 
-void Astroid::Hit()
+void Astroid::Hit(std::vector<Astroid>& _astroidBuffer)
 {
 	if(size == 1){return;}
 	Astroid firstAstroid;
@@ -221,8 +156,8 @@ void Astroid::Hit()
 	secondAstroid.vecX = cos(-rotational_change) * vecX - sin(-rotational_change) * vecY;
 	secondAstroid.vecY = sin(-rotational_change) * vecX + cos(-rotational_change) * vecY;
 
-	astroid_list.push_back(firstAstroid);
-	astroid_list.push_back(secondAstroid);
+	_astroidBuffer.push_back(firstAstroid);
+	_astroidBuffer.push_back(secondAstroid);
 }
 
 void Astroid::IncreaseX(float _x){x += _x;}
@@ -257,23 +192,31 @@ bool Astroid::CheckCollision(float _x, float _y)
 	int b = _y - y;
 	int c = sqrt(a*a + b*b);
 
-	if(c < GetCollisionSize()){
-		Hit();
-		return true;
-	}
+	if(c < GetCollisionSize()){return true;}
 
 	return false;
 }
 
-void UpdateAstroidList(float dt)
-{
-	for(int i = 0; i < astroid_list.size(); i++)
-	{
-		astroid_list.at(i).Update(dt);
-	}
-}
+enum OreType{Copper, Silver, Gold};
 
-std::vector<Line> playerLines;
+class Ore
+{
+	float x;
+	float y;
+	OreType ore_type;
+
+	void Create(OreType _type);
+	void Collision();
+	void Render();
+	void Destroy();
+};
+
+std::vector<Ore> oreBuffer;
+
+void Ore::Create(OreType _type)
+{
+	ore_type = _type;
+}
 
 class Bullet
 {
@@ -327,7 +270,6 @@ bool Bullet::CheckAlive()
 class Player
 {
 public:
-	//static void InitalizePointList();
 	
 	bool up = false;
 	bool down = false;

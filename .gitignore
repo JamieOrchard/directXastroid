@@ -1,0 +1,7 @@
+/.vs
+/astroid1.pdn
+/build.bat
+/devbuild.bat
+/main.obj
+/main.pdb
+/particles.cpp

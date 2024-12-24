@@ -1,6 +1,6 @@
 /*
-cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib /EHsc /DEBUG /Z7
-cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib /EHsc 
+cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib dwrite.lib /EHsc /DEBUG /Z7
+cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib dwrite.lib /EHsc 
 */
 
 //Window Header Files
@@ -34,6 +34,7 @@ float cameraOffsetY = 0;
 
 //Game headers
 #include "colours.cpp"
+#include "font.cpp"
 #include "geometry.cpp"
 #include "particles.cpp"
 #include "stars.cpp"

@@ -3,10 +3,25 @@
 
 namespace Game
 {
+	//Player Management
 	Player player;
+
+	//Star Management
 	std::vector<SolarSystem> star_systems;
 
-	const int ASTROID_MAX_COUNT = 50;
+	//Ore Management
+	//std::vector<Ore> oreBuffer;
+
+	//Astroids Management
+	std::vector<Astroid> astroid_list;
+	bool astroids_spawning = false;
+	const int ASTROID_MAX_COUNT = 10;
+
+	void UpdateAstroids(float _delta);
+
+	//Game Management
+	int score;
+
 
 	void Init();
 	void Update(float _delta);
@@ -14,16 +29,18 @@ namespace Game
 	bool HandleInput(WPARAM _wParam, bool _keyDown);
 
 	void UpdateStarSystems(float _delta);
-	void UpdateAstroids(float _delta);
+	
 }
 
 void Game::Init()
 {
-	Astroid::InitalizePointList();
+	//Astroid::InitalizePointList();
 	//Player::InitalizePointList();
 	player.Create();
 
+	Font::Create();
 	GeometricShapes::InitalizePlayerLines();
+	GeometricShapes::InitalizeAstroidLines();
 }
 
 void Game::Update(float _delta)
@@ -36,7 +53,8 @@ void Game::Update(float _delta)
 void Game::UpdateAstroids(float _dt)
 {
 	//Astroid Movement Loop
-	UpdateAstroidList(_dt);
+	for(auto& astroid : astroid_list){astroid.Update(_dt);}
+	
 
 	//Check if new astroids can spawn
 	int count = 0;
@@ -60,6 +78,7 @@ void Game::UpdateAstroids(float _dt)
 		for(int i = 0; i < astroid_list.size(); i++)
 		{
 			if(astroid_list.at(i).CheckCollision(bullets.x, bullets.y)){
+				astroid_list.at(i).Hit(astroid_list);
 				astroid_list.erase(astroid_list.begin() + i);
 				bullets.current_life = bullets.MAX_LIFESPAN;
 			}
@@ -123,8 +142,7 @@ void Game::UpdateStarSystems(float _dt)
 
 bool Game::HandleInput(WPARAM _wParam, bool _keyDown)
 {
-	if(player.HandleInput(_wParam, _keyDown)){true;}
-
+	if(player.HandleInput(_wParam, _keyDown)){return true;}
 	return false;
 }
 
@@ -134,6 +152,9 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	for(auto stars: Game::star_systems){stars.Render(_renderTarget);}
 	for(auto astroid : astroid_list){astroid.Render(_renderTarget);}
 	Game::player.Render(_renderTarget);
+	
+	std::string score_text = "Score: " + std::to_string(score);
+	Font::Render(_renderTarget, score_text);
 }
 
 
