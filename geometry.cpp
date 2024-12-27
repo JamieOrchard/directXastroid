@@ -15,6 +15,8 @@ public:
 	void CenterTo(float pos);
 	void AdjustProjection(D2D_POINT_2F adjustment);
 	void RotateProjection(float x, float y, float rotation);
+
+	D2D_POINT_2F GetOffset();
 };
 
 Line::Line()
@@ -74,6 +76,11 @@ void Line::RotateProjection(float x, float y, float rotation)
 	start.y = ystartnew + y;
 	end.x = xendnew + x;
 	end.y = yendnew + y;
+}
+
+D2D_POINT_2F Line::GetOffset()
+{
+	return D2D1::Point2F(start.x, start.y);
 }
 
 namespace GeometricShapes
@@ -165,6 +172,77 @@ void GeometricShapes::InitalizeAstroidLines()
 	}
 	GeneratePaths(cord_list, astroids_size_1);
 	fclose(file);
+}
+
+namespace Collisions
+{
+	float DotProduct(D2D_POINT_2F _a, D2D_POINT_2F _b);
+	D2D_POINT_2F NearestPointOnTriangle(D2D_POINT_2F _point, D2D_POINT_2F _a, D2D_POINT_2F _b, D2D_POINT_2F _c);
+	bool CircleTriangle(D2D_POINT_2F _p, D2D_POINT_2F _c, float _r);
+}
+
+float Collisions::DotProduct(D2D_POINT_2F _a, D2D_POINT_2F _b)
+{
+	return (_a.x * _b.x) + (_a.y * _b.y);
+}
+
+//I think this is a little over the top
+D2D_POINT_2F Collisions::NearestPointOnTriangle(D2D_POINT_2F _p, D2D_POINT_2F _a, D2D_POINT_2F _b, D2D_POINT_2F _c)
+{
+	D2D_POINT_2F ab = D2D1::Point2F(_b.x - _a.x, _b.y - _a.y);
+	D2D_POINT_2F ac = D2D1::Point2F(_c.x - _a.x, _c.y - _a.y);
+
+	//Vertex Region Outside of A
+	D2D_POINT_2F ap = D2D1::Point2F(_p.x - _a.x, _p.y - _a.y);
+	float d1 = DotProduct(ab, ap);
+	float d2 = DotProduct(ac, ap);
+	if(d1 <= 0 && d2 <= 0){return _a;}
+
+	//Vertex Region Outside of B
+	D2D_POINT_2F bp = D2D1::Point2F(_p.x - _b.x, _p.y - _b.y);
+	float d3 = DotProduct(ab, bp);
+	float d4 = DotProduct(ac, bp);
+	if(d3 >= 0 && d4 <= d3){return _b;}
+
+	//Edge Region AB
+	if(d1 >= 0 && d3 <= 0 && (d1 * d4) - (d3 * d2) <= 0){
+		float v = d1 / (d1 - d3);
+		return D2D1::Point2F(_a.x + (ab.x * v), _a.y + (ab.y * v));
+	}
+
+	//Vertex Region Outside of C
+	D2D_POINT_2F cp = D2D1::Point2F(_p.x - _c.x, _p.y - _c.y);
+	float d5 = DotProduct(ab, cp);
+	float d6 = DotProduct(ac, cp);
+	if(d6 >= 0 && d5 <= d6){return _c;}
+
+	//Edge Region AC
+	if(d2 >= 0 && d6 <= 0 && (d5 * d2) - (d1 * d6) <= 0)
+	{
+		float w = d2/(d2 - d6);
+		return D2D1::Point2F(_a.x + (ac.x * w), _a.y + (ac.y * w));
+	}
+
+	//Edge Region BC
+	if((d3 * d6) - (d5 * d4) <= 0){
+		float d43 = d4 - d3;
+		float d56 = d5 - d6;
+		if(d43 >= 0 && d56 >= 0){
+			float w = d43/(d43 + d56);
+			return D2D1::Point2F(_b.x + (_c.x - _b.x)*w, _b.y + (_c.y - _b.y)*w);
+		}
+	}
+
+	//Inside Face Region
+	return _p;
+}
+
+bool Collisions::CircleTriangle(D2D_POINT_2F _p, D2D_POINT_2F _c, float _r)
+{
+	float dx = _p.x - _c.x;
+	float dy = _p.y - _c.y;
+
+	return (dx*dx + dy*dy <= _r*_r);
 }
 
 #endif

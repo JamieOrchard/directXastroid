@@ -5,6 +5,8 @@
     #define M_PI 3.14159265358979323846
 #endif
 
+class Ore;
+
 class Astroid
 {
 public:
@@ -201,21 +203,89 @@ enum OreType{Copper, Silver, Gold};
 
 class Ore
 {
+public:
 	float x;
 	float y;
 	OreType ore_type;
+	D2D1_ELLIPSE ellipse;
 
-	void Create(OreType _type);
-	void Collision();
-	void Render();
+	void Create(OreType _type, float _x, float _y);
+	void CreateOnAstroid(int _size, float _x, float _y);
+	void CheckCollision(std::vector<Line>& _points);
+	void Update();
+	void Render(ID2D1HwndRenderTarget* _RenderTarget);
 	void Destroy();
 };
 
-std::vector<Ore> oreBuffer;
+//std::vector<Ore> oreBuffer;
 
-void Ore::Create(OreType _type)
+void Ore::Create(OreType _type, float _x, float _y)
 {
 	ore_type = _type;
+	x = _x;
+	y = _y;
+}
+
+void Ore::CreateOnAstroid(int _size, float _x, float _y)
+{
+	switch(_size)
+	{
+	case 3:
+		ore_type = OreType::Copper;
+		ellipse.radiusX = 8;
+		ellipse.radiusY = 8;
+		break;
+	case 2:
+		ore_type = OreType::Silver;
+		ellipse.radiusX = 4;
+		ellipse.radiusY = 4;
+		break;
+	case 1:
+		ore_type = OreType::Gold;
+		ellipse.radiusX = 2;
+		ellipse.radiusY = 2;
+		break;
+	default:
+		return;
+	}
+
+	ellipse.point.x = _x;
+	ellipse.point.y = _y;
+}
+
+void Ore::Update()
+{
+
+}
+
+void Ore::CheckCollision(std::vector<Line>& _points)
+{
+	//Triangle vs Circle collision
+
+}
+
+void Ore::Render(ID2D1HwndRenderTarget* _RenderTarget)
+{
+	std::string colour;
+	switch(ore_type)
+	{
+		case(Copper):
+			colour = "ORANGE";
+		break;
+		case(Silver):
+			colour = "GREY";
+		break;
+		case(Gold):
+			colour = "YELLOW";
+		break;
+	}
+
+	//Add render line here
+	D2D1_ELLIPSE temp;
+	temp = ellipse;
+	temp.point.x = ellipse.point.x + cameraOffsetX;
+	temp.point.y = ellipse.point.y + cameraOffsetY;
+	_RenderTarget->DrawEllipse(&temp, COLOURS::palette[colour], 2, NULL);
 }
 
 class Bullet
@@ -354,7 +424,6 @@ bool Player::HandleInput(WPARAM wParam, bool keyDown)
 		if(!keyDown){fire = true;}
 	}
 
-
 	return false;
 }
 
@@ -437,13 +506,9 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		tempLine.RotateProjection(start_x, start_y, rotation);
 		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
 	}
-
 	//_RenderTarget->DrawRectangle(&movement_box, COLOURS::palette["GREY"]);
 
-	for(auto& i: player_bullets)
-	{
-		i.Render(_RenderTarget);
-	}
+	for(auto& i: player_bullets){i.Render(_RenderTarget);}
 }
 
 #endif

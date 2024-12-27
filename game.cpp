@@ -10,7 +10,8 @@ namespace Game
 	std::vector<SolarSystem> star_systems;
 
 	//Ore Management
-	//std::vector<Ore> oreBuffer;
+	std::vector<Ore> oreBuffer;
+	void UpdateOre(float _delta);
 
 	//Astroids Management
 	std::vector<Astroid> astroid_list;
@@ -21,7 +22,6 @@ namespace Game
 
 	//Game Management
 	int score;
-
 
 	void Init();
 	void Update(float _delta);
@@ -48,6 +48,44 @@ void Game::Update(float _delta)
 	player.Update(_delta);
 	UpdateStarSystems(_delta);
 	UpdateAstroids(_delta);
+	UpdateOre(_delta);
+}
+
+D2D_POINT_2F out;
+
+void Game::UpdateOre(float _delta)
+{
+	if(oreBuffer.size() > 0)
+	{
+		Player temp_player = player;
+		Line line0 = GeometricShapes::player.at(0);
+		Line line1 = GeometricShapes::player.at(1);
+		Line line2 = GeometricShapes::player.at(2);
+
+		D2D_POINT_2F start_point = {player.start_x, player.start_y};
+
+		line0.AdjustProjection(start_point);
+		line1.AdjustProjection(start_point);
+		line2.AdjustProjection(start_point);
+		int centerPoint = 16;
+		line0.CenterTo(centerPoint);
+		line1.CenterTo(centerPoint);
+		line2.CenterTo(centerPoint);
+
+		line0.RotateProjection(player.start_x, player.start_y, player.rotation);
+		line1.RotateProjection(player.start_x, player.start_y, player.rotation);
+		line2.RotateProjection(player.start_x, player.start_y, player.rotation);
+
+		D2D_POINT_2F temp;
+		D2D_POINT_2F ore = D2D1::Point2F(oreBuffer.front().ellipse.point.x + cameraOffsetX, oreBuffer.front().ellipse.point.y + cameraOffsetY);
+		//D2D_POINT_2F ore = D2D1::Point2F(oreBuffer.front().ellipse.point.x, oreBuffer.front().ellipse.point.y);
+		out = Collisions::NearestPointOnTriangle(ore, line0.GetOffset(), line1.GetOffset(), line2.GetOffset());
+		D2D_POINT_2F playtemp = {player.x - cameraOffsetX, player.y - cameraOffsetY};
+		printf("Player X[%f]Y[%f] Ore X[%f]Y[%f] DisBet X[%f]Y[%f]\n", line0.start.x, line0.start.y, ore.x, ore.y, out.x, out.y);
+		if(Collisions::CircleTriangle(out, ore, 8)){
+			printf("Collision\n");
+		}
+	}
 }
 
 void Game::UpdateAstroids(float _dt)
@@ -78,7 +116,11 @@ void Game::UpdateAstroids(float _dt)
 		for(int i = 0; i < astroid_list.size(); i++)
 		{
 			if(astroid_list.at(i).CheckCollision(bullets.x, bullets.y)){
-				astroid_list.at(i).Hit(astroid_list);
+				Astroid* astroid = &astroid_list.at(i);
+				Ore newOre;
+				newOre.CreateOnAstroid(astroid->GetSize(), astroid->GetX(), astroid->GetY());
+				oreBuffer.push_back(newOre);
+				astroid->Hit(astroid_list);
 				astroid_list.erase(astroid_list.begin() + i);
 				bullets.current_life = bullets.MAX_LIFESPAN;
 			}
@@ -151,10 +193,14 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	//Draw the Stars, Astroids and Player
 	for(auto stars: Game::star_systems){stars.Render(_renderTarget);}
 	for(auto astroid : astroid_list){astroid.Render(_renderTarget);}
+	for(auto ore: oreBuffer){ore.Render(_renderTarget);}
 	Game::player.Render(_renderTarget);
 	
 	std::string score_text = "Score: " + std::to_string(score);
 	Font::Render(_renderTarget, score_text);
+
+	D2D_POINT_2F outend = {out.x + 1, out.y + 1};
+	_renderTarget->DrawLine(out, outend, COLOURS::palette["BLUE"], 4);
 }
 
 

@@ -13,38 +13,34 @@ void COLOURS::Init(ID2D1HwndRenderTarget* _renderTarget)
 {
 	HRESULT hr;
 
-	ID2D1SolidColorBrush* m_BlackBrush;
-	ID2D1SolidColorBrush* m_WhiteBrush;
-	ID2D1SolidColorBrush* m_GreyBrush;
-	ID2D1SolidColorBrush* m_RedBrush;
-	ID2D1SolidColorBrush* m_YellowBrush;
-	ID2D1SolidColorBrush* m_GreenBrush;
-	ID2D1SolidColorBrush* m_CyanBrush;
-	ID2D1SolidColorBrush* m_BlueBrush;
+	ID2D1SolidColorBrush* m_Brush;
 
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 1.0f), &m_BlackBrush);
-	palette["BLACK"] = m_BlackBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 0, 0, 1.0f), &m_Brush);
+	palette["BLACK"] = m_Brush;
 
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_WhiteBrush);
-	palette["WHITE"] = m_WhiteBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 1.0f, 1.0f), &m_Brush);
+	palette["WHITE"] = m_Brush;
 	
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.75f, 0.75f, 0.75f, 1.0f), &m_GreyBrush);
-	palette["GREY"] = m_GreyBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0.75f, 0.75f, 0.75f, 1.0f), &m_Brush);
+	palette["GREY"] = m_Brush;
 
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0, 0, 1.0f), &m_RedBrush);
-	palette["RED"] = m_RedBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0, 0, 1.0f), &m_Brush);
+	palette["RED"] = m_Brush;
 
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 0, 1.0f), &m_YellowBrush);
-	palette["YELLOW"] = m_YellowBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 1.0f, 0, 1.0f), &m_Brush);
+	palette["YELLOW"] = m_Brush;
 
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 1.0f, 0, 1.0f), &m_GreenBrush);
-	palette["GREEN"] = m_GreenBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 1.0f, 0, 1.0f), &m_Brush);
+	palette["GREEN"] = m_Brush;
 
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 1.0f, 1.0f, 1.0f), &m_CyanBrush);
-	palette["CYAN"] = m_CyanBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 1.0f, 1.0f, 1.0f), &m_Brush);
+	palette["CYAN"] = m_Brush;
 	
-	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 0, 1.0f, 1.0f), &m_BlueBrush);
-	palette["BLUE"] = m_BlueBrush;
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(0, 0, 1.0f, 1.0f), &m_Brush);
+	palette["BLUE"] = m_Brush;
+
+	hr = _renderTarget->CreateSolidColorBrush(D2D1::ColorF(1.0f, 0.49f, 0.15f), &m_Brush);
+	palette["ORANGE"] = m_Brush;
 }
 
 void COLOURS::Deinit()
