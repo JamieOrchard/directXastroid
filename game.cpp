@@ -55,8 +55,45 @@ D2D_POINT_2F out;
 
 void Game::UpdateOre(float _delta)
 {
+	std::vector<Line> lines = GeometricShapes::player;
+	D2D_POINT_2F start_point = {player.start_x, player.start_y};
+	int centerPoint = 16;
+
 	if(oreBuffer.size() > 0)
 	{
+		for(auto& line : lines){
+			line.AdjustProjection(start_point);
+			line.CenterTo(centerPoint);
+			line.RotateProjection(player.start_x, player.start_y, player.rotation);
+		}
+
+		for(int i = 0; i < oreBuffer.size(); i++)
+		{
+			D2D_POINT_2F ore = D2D1::Point2F(oreBuffer.at(i).GetX() + cameraOffsetX, oreBuffer.at(i).GetY() + cameraOffsetY);
+
+			D2D_POINT_2F nearest = Collisions::NearestPointOnTriangle(ore, lines.at(0).GetOffset(),
+																		lines.at(1).GetOffset(),
+																		lines.at(2).GetOffset());
+
+			if(Collisions::CircleTriangle(nearest,ore, 8)){
+				switch(oreBuffer.at(i).ore_type){
+				case Copper:
+					score += 1;
+					break;
+				case Silver:
+					score += 10;
+					break;
+				case Gold:
+					score += 100;
+					break;
+				}
+
+				oreBuffer.erase(oreBuffer.begin() + i);
+				break;
+			}
+		}
+		
+		/*
 		Player temp_player = player;
 		Line line0 = GeometricShapes::player.at(0);
 		Line line1 = GeometricShapes::player.at(1);
@@ -75,14 +112,14 @@ void Game::UpdateOre(float _delta)
 		line0.RotateProjection(player.start_x, player.start_y, player.rotation);
 		line1.RotateProjection(player.start_x, player.start_y, player.rotation);
 		line2.RotateProjection(player.start_x, player.start_y, player.rotation);
-
-		D2D_POINT_2F temp;
+		
+		
 		D2D_POINT_2F ore = D2D1::Point2F(oreBuffer.front().ellipse.point.x + cameraOffsetX, oreBuffer.front().ellipse.point.y + cameraOffsetY);
-		out = Collisions::NearestPointOnTriangle(ore, line0.GetOffset(), line1.GetOffset(), line2.GetOffset());
-		D2D_POINT_2F playtemp = {player.x - cameraOffsetX, player.y - cameraOffsetY};
+		out = Collisions::NearestPointOnTriangle(ore, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
 		if(Collisions::CircleTriangle(out, ore, 8)){
-			//Do stufff
+			printf("COLLISIONS\n");
 		}
+		*/
 	}
 }
 

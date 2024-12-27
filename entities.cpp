@@ -215,6 +215,9 @@ public:
 	void Update();
 	void Render(ID2D1HwndRenderTarget* _RenderTarget);
 	void Destroy();
+
+	float GetX();
+	float GetY();
 };
 
 //std::vector<Ore> oreBuffer;
@@ -263,6 +266,9 @@ void Ore::CheckCollision(std::vector<Line>& _points)
 	//Triangle vs Circle collision
 
 }
+
+float Ore::GetX(){return ellipse.point.x;}
+float Ore::GetY(){return ellipse.point.y;}
 
 void Ore::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
