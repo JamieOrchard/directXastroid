@@ -186,7 +186,7 @@ float Collisions::DotProduct(D2D_POINT_2F _a, D2D_POINT_2F _b)
 	return (_a.x * _b.x) + (_a.y * _b.y);
 }
 
-//I think this is a little over the top
+//Required to do the Triangle Vs Circle Collisions
 D2D_POINT_2F Collisions::NearestPointOnTriangle(D2D_POINT_2F _p, D2D_POINT_2F _a, D2D_POINT_2F _b, D2D_POINT_2F _c)
 {
 	D2D_POINT_2F ab = D2D1::Point2F(_b.x - _a.x, _b.y - _a.y);

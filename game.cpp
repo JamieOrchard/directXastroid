@@ -78,12 +78,10 @@ void Game::UpdateOre(float _delta)
 
 		D2D_POINT_2F temp;
 		D2D_POINT_2F ore = D2D1::Point2F(oreBuffer.front().ellipse.point.x + cameraOffsetX, oreBuffer.front().ellipse.point.y + cameraOffsetY);
-		//D2D_POINT_2F ore = D2D1::Point2F(oreBuffer.front().ellipse.point.x, oreBuffer.front().ellipse.point.y);
 		out = Collisions::NearestPointOnTriangle(ore, line0.GetOffset(), line1.GetOffset(), line2.GetOffset());
 		D2D_POINT_2F playtemp = {player.x - cameraOffsetX, player.y - cameraOffsetY};
-		printf("Player X[%f]Y[%f] Ore X[%f]Y[%f] DisBet X[%f]Y[%f]\n", line0.start.x, line0.start.y, ore.x, ore.y, out.x, out.y);
 		if(Collisions::CircleTriangle(out, ore, 8)){
-			printf("Collision\n");
+			//Do stufff
 		}
 	}
 }
