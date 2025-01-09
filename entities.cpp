@@ -365,6 +365,8 @@ public:
 	float VECMAX = 200;
 	float ROTSPEED = 2;
 
+	float centerPoint = 16;
+
 	D2D_RECT_F movement_box;
 
 	std::vector<Bullet> player_bullets;
@@ -374,6 +376,9 @@ public:
 	bool HandleInput(WPARAM, bool);
 	void Update(float _dt);
 	void Render(ID2D1HwndRenderTarget*);
+	void CheckAstroidCollisions(Astroid* _astroid);
+
+	D2D_POINT_2F GetStartPoint();
 };
 
 /*
@@ -499,6 +504,11 @@ void Player::Update(float _dt)
 	}
 }
 
+void Player::CheckAstroidCollisions(Astroid* _astroid)
+{
+	//Collisions::NearestPointOnTriangle()
+}
+
 void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
 	for(auto i: GeometricShapes::player)
@@ -516,5 +526,7 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 
 	for(auto& i: player_bullets){i.Render(_RenderTarget);}
 }
+
+D2D1_POINT_2F Player::GetStartPoint(){return D2D1::Point2F(start_x, start_y);}
 
 #endif

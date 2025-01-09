@@ -178,12 +178,25 @@ namespace Collisions
 {
 	float DotProduct(D2D_POINT_2F _a, D2D_POINT_2F _b);
 	D2D_POINT_2F NearestPointOnTriangle(D2D_POINT_2F _point, D2D_POINT_2F _a, D2D_POINT_2F _b, D2D_POINT_2F _c);
+	D2D_POINT_2F NearestPointOnTriangle(D2D_POINT_2F _point, std::vector<Line>& _lines);
 	bool CircleTriangle(D2D_POINT_2F _p, D2D_POINT_2F _c, float _r);
+
 }
 
 float Collisions::DotProduct(D2D_POINT_2F _a, D2D_POINT_2F _b)
 {
 	return (_a.x * _b.x) + (_a.y * _b.y);
+}
+
+D2D_POINT_2F Collisions::NearestPointOnTriangle(D2D_POINT_2F _p, std::vector<Line>& _lines)
+{
+	if(_lines.size() > 3){
+		printf("Object is not triangle exceeds line count of 3\n");
+		return D2D1::Point2F(0,0);
+	}
+
+	printf("THIS CRASHES THE GAME\n");
+	return NearestPointOnTriangle(_p, _lines.at(0).GetOffset(), _lines.at(1).GetOffset(), _lines.at(2).GetOffset());
 }
 
 //Required to do the Triangle Vs Circle Collisions

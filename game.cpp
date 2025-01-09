@@ -56,14 +56,12 @@ D2D_POINT_2F out;
 void Game::UpdateOre(float _delta)
 {
 	std::vector<Line> lines = GeometricShapes::player;
-	D2D_POINT_2F start_point = {player.start_x, player.start_y};
-	int centerPoint = 16;
 
 	if(oreBuffer.size() > 0)
 	{
 		for(auto& line : lines){
-			line.AdjustProjection(start_point);
-			line.CenterTo(centerPoint);
+			line.AdjustProjection(player.GetStartPoint());
+			line.CenterTo(player.centerPoint);
 			line.RotateProjection(player.start_x, player.start_y, player.rotation);
 		}
 
@@ -92,34 +90,6 @@ void Game::UpdateOre(float _delta)
 				break;
 			}
 		}
-		
-		/*
-		Player temp_player = player;
-		Line line0 = GeometricShapes::player.at(0);
-		Line line1 = GeometricShapes::player.at(1);
-		Line line2 = GeometricShapes::player.at(2);
-
-		D2D_POINT_2F start_point = {player.start_x, player.start_y};
-
-		line0.AdjustProjection(start_point);
-		line1.AdjustProjection(start_point);
-		line2.AdjustProjection(start_point);
-		int centerPoint = 16;
-		line0.CenterTo(centerPoint);
-		line1.CenterTo(centerPoint);
-		line2.CenterTo(centerPoint);
-
-		line0.RotateProjection(player.start_x, player.start_y, player.rotation);
-		line1.RotateProjection(player.start_x, player.start_y, player.rotation);
-		line2.RotateProjection(player.start_x, player.start_y, player.rotation);
-		
-		
-		D2D_POINT_2F ore = D2D1::Point2F(oreBuffer.front().ellipse.point.x + cameraOffsetX, oreBuffer.front().ellipse.point.y + cameraOffsetY);
-		out = Collisions::NearestPointOnTriangle(ore, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
-		if(Collisions::CircleTriangle(out, ore, 8)){
-			printf("COLLISIONS\n");
-		}
-		*/
 	}
 }
 
@@ -145,7 +115,7 @@ void Game::UpdateAstroids(float _dt)
 		}
 	}
 
-	//Collision Detection
+	//Bullet Collision Detection
 	for(auto& bullets: player.player_bullets)
 	{
 		for(int i = 0; i < astroid_list.size(); i++)
@@ -159,6 +129,27 @@ void Game::UpdateAstroids(float _dt)
 				astroid_list.erase(astroid_list.begin() + i);
 				bullets.current_life = bullets.MAX_LIFESPAN;
 			}
+		}
+	}
+
+	std::vector<Line> lines = GeometricShapes::player;
+	if(GeometricShapes::player.size() == 0){return;} //Safety break due to not generatic lines
+
+	for(auto& line : lines){
+		line.AdjustProjection(player.GetStartPoint());
+		line.CenterTo(player.centerPoint);
+		line.RotateProjection(player.start_x, player.start_y, player.rotation);
+	}
+
+	//Player Collision Detection
+	for(auto astroid : astroid_list)
+	{
+		D2D_POINT_2F astroid_point = D2D1::Point2F(astroid.GetX() + cameraOffsetX, astroid.GetY() + cameraOffsetY);
+		//This causes game to crash? Needs to be simplified
+
+		D2D_POINT_2F nearest = Collisions::NearestPointOnTriangle(astroid_point, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
+		if(Collisions::CircleTriangle(nearest,astroid_point, 8)){
+			printf("PLAYER DIED\n");
 		}
 	}
 }
@@ -236,6 +227,9 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 
 	D2D_POINT_2F outend = {out.x + 1, out.y + 1};
 	_renderTarget->DrawLine(out, outend, COLOURS::palette["BLUE"], 4);
+
+	D2D1_RECT_F rectangle = {200.0f, 150.0f, 450.0f, 350.0f};
+	_renderTarget->DrawRectangle(&rectangle, COLOURS::palette["BLUE"]);
 }
 
 
