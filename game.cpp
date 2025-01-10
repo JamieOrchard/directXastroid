@@ -1,6 +1,14 @@
 #ifndef GAME_H
 #define GAME_H
 
+enum GameState
+{
+	MainMenu,
+	Alive,
+	Dead,
+	Inventory
+};
+
 namespace Game
 {
 	//Player Management
@@ -62,7 +70,7 @@ void Game::UpdateOre(float _delta)
 		for(auto& line : lines){
 			line.AdjustProjection(player.GetStartPoint());
 			line.CenterTo(player.centerPoint);
-			line.RotateProjection(player.start_x, player.start_y, player.rotation);
+			line.RotateProjection(player.start_x, player.start_y, player.GetRotation());
 		}
 
 		for(int i = 0; i < oreBuffer.size(); i++)
@@ -120,7 +128,7 @@ void Game::UpdateAstroids(float _dt)
 	{
 		for(int i = 0; i < astroid_list.size(); i++)
 		{
-			if(astroid_list.at(i).CheckCollision(bullets.x, bullets.y)){
+			if(astroid_list.at(i).CheckCollision(bullets.GetX(), bullets.GetY())){
 				Astroid* astroid = &astroid_list.at(i);
 				Ore newOre;
 				newOre.CreateOnAstroid(astroid->GetSize(), astroid->GetX(), astroid->GetY());
@@ -148,9 +156,7 @@ void Game::UpdateAstroids(float _dt)
 		//This causes game to crash? Needs to be simplified
 
 		D2D_POINT_2F nearest = Collisions::NearestPointOnTriangle(astroid_point, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
-		if(Collisions::CircleTriangle(nearest,astroid_point, 8)){
-			printf("PLAYER DIED\n");
-		}
+		if(Collisions::CircleTriangle(nearest,astroid_point, 8)){Game::player.alive = false;}
 	}
 }
 
@@ -220,7 +226,7 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	for(auto stars: Game::star_systems){stars.Render(_renderTarget);}
 	for(auto astroid : astroid_list){astroid.Render(_renderTarget);}
 	for(auto ore: oreBuffer){ore.Render(_renderTarget);}
-	Game::player.Render(_renderTarget);
+	if(Game::player.alive){Game::player.Render(_renderTarget);}
 	
 	std::string score_text = "Score: " + std::to_string(score);
 	Font::Render(_renderTarget, score_text);
@@ -229,7 +235,7 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	_renderTarget->DrawLine(out, outend, COLOURS::palette["BLUE"], 4);
 
 	D2D1_RECT_F rectangle = {200.0f, 150.0f, 450.0f, 350.0f};
-	_renderTarget->DrawRectangle(&rectangle, COLOURS::palette["BLUE"]);
+	//_renderTarget->DrawRectangle(&rectangle, COLOURS::palette["BLUE"]);
 }
 
 

@@ -36,7 +36,6 @@ float cameraOffsetY = 0;
 #include "colours.cpp"
 #include "font.cpp"
 #include "geometry.cpp"
-#include "particles.cpp"
 #include "stars.cpp"
 #include "entities.cpp"
 #include "game.cpp"

@@ -7,7 +7,24 @@
 
 class Ore;
 
-class Astroid
+class BaseEntity
+{
+public:
+
+	float x;
+	float y;
+	float rotation;
+	float vecX;
+	float vecY;
+
+	float GetX(){return x;}
+	float GetY(){return y;}
+	float GetRotation(){return rotation;}
+	float GetVecX(){return vecX;}
+	float GetVecY(){return vecY;}
+};
+
+class Astroid : public BaseEntity
 {
 public:
 
@@ -17,35 +34,18 @@ public:
 	void Update(float _dt);
 	void Render(ID2D1HwndRenderTarget* _RenderTarget);
 
-	void IncreaseX(float _x);
-	void IncreaseRot(float _rot);
-
-	void  SetRotation(float _rot);
-	float GetRotation();
-
-	float GetX();
-	float GetY();
-
-	int GetSize();
+	void IncreaseRot(float _rot){rotation += _rot;}
+	void  SetRotation(float _rot){rotation = _rot;}
+	int GetSize(){return size;}
 	int GetCollisionSize();
 	bool CheckCollision(float _x, float _y);
-
-	bool GetImmune();
 
 	void Hit(std::vector<Astroid>& _astroidBuffer);
 	
 
 private:
-	float x   = 0.f;
-	float y   = 0.f;
-	float rotation = 0.f;
 	float rotationSpeed = 0.f;
-	float vecX = 0.f;
-	float vecY = 0.f;
 	int size  = 3;
-	bool immune = true;
-	float immunity_timer = 3;
-	float immunity_max_timer = 1;
 
 	static const int BORDER_BOUNDARIES = 200;
 };
@@ -99,10 +99,7 @@ void Astroid::Update(float _dt)
 	if(vecX > 0 && x + cameraOffsetX >  640 + BORDER_BOUNDARIES){Create();}
 	if(vecX < 0 && x + cameraOffsetX <    0 - BORDER_BOUNDARIES){Create();}
 	if(vecY > 0 && y + cameraOffsetY >  480 + BORDER_BOUNDARIES){Create();}
-	if(vecY < 0 && y + cameraOffsetY <    0 - BORDER_BOUNDARIES){Create();}
-
-	if(immune && immunity_timer < 0){immune = false;}
-	else{immunity_timer = immunity_timer - _dt;}	
+	if(vecY < 0 && y + cameraOffsetY <    0 - BORDER_BOUNDARIES){Create();}	
 }
 
 void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget)
@@ -127,7 +124,6 @@ void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget)
 	}
 }	
 
-
 void Astroid::Hit(std::vector<Astroid>& _astroidBuffer)
 {
 	if(size == 1){return;}
@@ -140,8 +136,6 @@ void Astroid::Hit(std::vector<Astroid>& _astroidBuffer)
 
 	firstAstroid.x = x;
 	firstAstroid.y = y;
-	firstAstroid.immune = true;
-	firstAstroid.immunity_timer = firstAstroid.immunity_max_timer;
 	firstAstroid.size = size - 1;
 	firstAstroid.SetRotation(rotation - 10);
 	firstAstroid.vecX = cos(rotational_change) * vecX - sin(rotational_change) * vecY;
@@ -151,8 +145,6 @@ void Astroid::Hit(std::vector<Astroid>& _astroidBuffer)
 
 	secondAstroid.x = x;
 	secondAstroid.y = y;
-	secondAstroid.immune = true;
-	secondAstroid.immunity_timer = secondAstroid.immunity_max_timer;
 	secondAstroid.size = size - 1;
 	secondAstroid.SetRotation(rotation + 10);
 	secondAstroid.vecX = cos(-rotational_change) * vecX - sin(-rotational_change) * vecY;
@@ -162,17 +154,8 @@ void Astroid::Hit(std::vector<Astroid>& _astroidBuffer)
 	_astroidBuffer.push_back(secondAstroid);
 }
 
-void Astroid::IncreaseX(float _x){x += _x;}
-void Astroid::IncreaseRot(float _rot){rotation += _rot;}
 
-float Astroid::GetRotation(){return rotation;}
-void Astroid::SetRotation(float _rot){rotation = _rot;}
 
-float Astroid::GetX(){return x;}
-float Astroid::GetY(){return y;}
-
-bool Astroid::GetImmune(){return immune;}
-int Astroid::GetSize(){return size;}
 int Astroid::GetCollisionSize()
 {
 	switch(size)
@@ -201,11 +184,9 @@ bool Astroid::CheckCollision(float _x, float _y)
 
 enum OreType{Copper, Silver, Gold};
 
-class Ore
+class Ore : public BaseEntity
 {
 public:
-	float x;
-	float y;
 	OreType ore_type;
 	D2D1_ELLIPSE ellipse;
 
@@ -216,8 +197,9 @@ public:
 	void Render(ID2D1HwndRenderTarget* _RenderTarget);
 	void Destroy();
 
-	float GetX();
-	float GetY();
+	float GetX(){return ellipse.point.x;}
+	float GetY(){return ellipse.point.y;}
+
 };
 
 //std::vector<Ore> oreBuffer;
@@ -267,9 +249,6 @@ void Ore::CheckCollision(std::vector<Line>& _points)
 
 }
 
-float Ore::GetX(){return ellipse.point.x;}
-float Ore::GetY(){return ellipse.point.y;}
-
 void Ore::Render(ID2D1HwndRenderTarget* _RenderTarget)
 {
 	std::string colour;
@@ -294,14 +273,10 @@ void Ore::Render(ID2D1HwndRenderTarget* _RenderTarget)
 	_RenderTarget->DrawEllipse(&temp, COLOURS::palette[colour], 2, NULL);
 }
 
-class Bullet
+class Bullet : public BaseEntity
 {
 public:
-	float x = 0;
-	float y = 0;
 
-	float vecX = 0;
-	float vecY = 0;
 	float speed = 400;
 
 	float MAX_LIFESPAN = 5;
@@ -343,10 +318,12 @@ bool Bullet::CheckAlive()
 	return false;
 }
 
-class Player
+class Player : public BaseEntity
 {
 public:
 	
+	bool alive = true;
+
 	bool up = false;
 	bool down = false;
 	bool left = false;
@@ -355,12 +332,7 @@ public:
 
 	float start_x = 640/2;
 	float start_y = 480/2;
-	float x = 0;
-	float y = 0;
-	float rotation = 0;
 
-	float vecX = 0;
-	float vecY = 0;
 	float VECMOD = 10;
 	float VECMAX = 200;
 	float ROTSPEED = 2;
