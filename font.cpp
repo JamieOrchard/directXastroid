@@ -4,6 +4,25 @@
 //THIS IS MOSTLY for DEV AND DEBUG more fitting font system to be added later
 //This is also all written for purpose and will need to be abstracted later...
 
+class Text
+{
+public:
+	std::string content;
+	D2D1_RECT_F pos;
+	ID2D1SolidColorBrush* colour;
+
+	bool is_loaded = false;
+
+	void Create(D2D1_RECT_F _pos, std::string _colour);
+};
+
+void Text::Create(D2D1_RECT_F _pos, std::string _colour)
+{
+	pos = _pos;
+	colour = COLOURS::palette[_colour];
+	is_loaded = true;
+}
+
 namespace Font
 {
 	IDWriteFactory* m_pDWriteFactory;
@@ -13,7 +32,7 @@ namespace Font
 
 	void Create();
 	void Update();
-	void Render(ID2D1HwndRenderTarget* _renderTarget, std::string _text);
+	void Render(ID2D1HwndRenderTarget* _renderTarget, Text* _text);
 }
 
 void Font::Create()
@@ -42,14 +61,15 @@ void Font::Create()
 	font_initalised = true;
 }
 
-void Font::Render(ID2D1HwndRenderTarget* _renderTarget, std::string _text)
+void Font::Render(ID2D1HwndRenderTarget* _renderTarget, Text* _text)
 {
 	if(!font_initalised){return;}
+	if(!_text->is_loaded){return;}
 
 	D2D1_SIZE_F renderTargetSize = _renderTarget->GetSize();
 
 	//Do silly string conversion
-	std::wstring wide_string = std::wstring(_text.begin(), _text.end());
+	std::wstring wide_string = std::wstring(_text->content.begin(), _text->content.end());
 	const wchar_t* result = wide_string.c_str();
 
 	
@@ -57,8 +77,8 @@ void Font::Render(ID2D1HwndRenderTarget* _renderTarget, std::string _text)
 		result,
 		wide_string.size(),
 		m_pTextFormat,
-		D2D1::RectF(0, 0, 100, 200),
-		COLOURS::palette["GREEN"]
+		_text->pos,
+		_text->colour
 		);
 }
 

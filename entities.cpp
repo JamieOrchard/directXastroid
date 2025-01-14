@@ -16,6 +16,8 @@ public:
 	float rotation;
 	float vecX;
 	float vecY;
+	float unitVecX;
+	float unitVecY;
 
 	float GetX(){return x;}
 	float GetY(){return y;}
@@ -351,6 +353,11 @@ public:
 	void CheckAstroidCollisions(Astroid* _astroid);
 
 	D2D_POINT_2F GetStartPoint();
+
+private:
+	void UpdateMovement(float _dt);
+	void UpdateBullets(float _dt);
+	void UpdateRespawn();
 };
 
 /*
@@ -412,13 +419,26 @@ bool Player::HandleInput(WPARAM wParam, bool keyDown)
 
 void Player::Update(float _dt)
 {
+	if(alive)
+	{
+		UpdateMovement(_dt);
+		UpdateBullets(_dt);
+	}
+	else
+	{
+		UpdateRespawn();
+	}	
+}
+
+void Player::UpdateMovement(float _dt)
+{
 	//Check input and clamp rotations
 	if(left){rotation -= ROTSPEED * _dt;}
 	if(right){rotation += ROTSPEED * _dt;}
 
 	//Find the projected vector if the player is moving in that direction
-	float unitVecX = cos(rotation - 1.57);
-	float unitVecY = sin(rotation - 1.57);
+	unitVecX = cos(rotation - 1.57);
+	unitVecY = sin(rotation - 1.57);
 
 	//Apply projected vector if key is pressed
 	if(up){
@@ -446,7 +466,10 @@ void Player::Update(float _dt)
 	//Apply movement vector to posistion
 	cameraOffsetX += vecX * _dt;
 	cameraOffsetY += vecY * _dt;
+}
 
+void Player::UpdateBullets(float _dt)
+{
 	//Bullet Handling
 	if(fire)
 	{
@@ -473,6 +496,21 @@ void Player::Update(float _dt)
 	{
 		bullet.Update(_dt);
 		count++;
+	}
+}
+
+void Player::UpdateRespawn()
+{
+	if(fire){
+		fire = false;
+		alive = true;
+		cameraOffsetX = 0;
+		cameraOffsetY = 0;
+		rotation = 0;
+		vecX = 0;
+		vecY = 0;
+
+		player_bullets.clear();
 	}
 }
 

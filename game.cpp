@@ -30,6 +30,9 @@ namespace Game
 
 	//Game Management
 	int score;
+	Text score_text;
+
+	Text death_text;
 
 	void Init();
 	void Update(float _delta);
@@ -49,6 +52,10 @@ void Game::Init()
 	Font::Create();
 	GeometricShapes::InitalizePlayerLines();
 	GeometricShapes::InitalizeAstroidLines();
+
+	score_text.Create(D2D1::RectF(0,0,100,200), "GREEN");
+	death_text.Create(D2D1::RectF(0,0, 300, 300), "WHITE");
+	death_text.content = "Press SPACE to respawn";
 }
 
 void Game::Update(float _delta)
@@ -228,14 +235,16 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	for(auto ore: oreBuffer){ore.Render(_renderTarget);}
 	if(Game::player.alive){Game::player.Render(_renderTarget);}
 	
-	std::string score_text = "Score: " + std::to_string(score);
-	Font::Render(_renderTarget, score_text);
+	score_text.content = "Score: " + std::to_string(score);
+	Font::Render(_renderTarget, &score_text);
+
+	if(!Game::player.alive){Font::Render(_renderTarget, &death_text);}
 
 	D2D_POINT_2F outend = {out.x + 1, out.y + 1};
 	_renderTarget->DrawLine(out, outend, COLOURS::palette["BLUE"], 4);
 
 	D2D1_RECT_F rectangle = {200.0f, 150.0f, 450.0f, 350.0f};
-	//_renderTarget->DrawRectangle(&rectangle, COLOURS::palette["BLUE"]);
+
 }
 
 
