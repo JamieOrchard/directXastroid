@@ -350,31 +350,19 @@ public:
 	bool HandleInput(WPARAM, bool);
 	void Update(float _dt);
 	void Render(ID2D1HwndRenderTarget*);
+	void DeadRender(ID2D1HwndRenderTarget*);
 	void CheckAstroidCollisions(Astroid* _astroid);
 
 	D2D_POINT_2F GetStartPoint();
 
+	float death_movement_increase = 0.0f;
+
 private:
 	void UpdateMovement(float _dt);
 	void UpdateBullets(float _dt);
-	void UpdateRespawn();
+	void UpdateRespawn(float _dt);
+	
 };
-
-/*
-void Player::InitalizePointList()
-{
-	Line new_line;
-	new_line.start = D2D1::Point2F(16, 0);
-	new_line.end = D2D1::Point2F(31, 31);
-	playerLines.push_back(new_line);
-	new_line.start = D2D1::Point2F(31, 31);
-	new_line.end = D2D1::Point2F(0, 31);
-	playerLines.push_back(new_line);
-	new_line.start = D2D1::Point2F(0, 31);
-	new_line.end = D2D1::Point2F(15, 0);
-	playerLines.push_back(new_line);
-}
-*/
 
 void Player::Create()
 {
@@ -426,7 +414,7 @@ void Player::Update(float _dt)
 	}
 	else
 	{
-		UpdateRespawn();
+		UpdateRespawn(_dt);
 	}	
 }
 
@@ -499,8 +487,10 @@ void Player::UpdateBullets(float _dt)
 	}
 }
 
-void Player::UpdateRespawn()
+void Player::UpdateRespawn(float _dt)
 {
+	death_movement_increase += _dt * 100;
+
 	if(fire){
 		fire = false;
 		alive = true;
@@ -509,6 +499,7 @@ void Player::UpdateRespawn()
 		rotation = 0;
 		vecX = 0;
 		vecY = 0;
+		death_movement_increase = 0;
 
 		player_bullets.clear();
 	}
@@ -527,7 +518,6 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		tempLine = i;
 		D2D_POINT_2F newPoint = {start_x, start_y};
 		tempLine.AdjustProjection(newPoint);
-		int centerPoint = 16;
 		tempLine.CenterTo(centerPoint);
 		tempLine.RotateProjection(start_x, start_y, rotation);
 		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
@@ -535,6 +525,34 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 	//_RenderTarget->DrawRectangle(&movement_box, COLOURS::palette["GREY"]);
 
 	for(auto& i: player_bullets){i.Render(_RenderTarget);}
+}
+
+void Player::DeadRender(ID2D1HwndRenderTarget* _RenderTarget)
+{
+	//Calcualte the rotations of the UnitVectors
+	//float tempUnitX = cos(rotation - 1.57);	//Centered
+	//float tempUnitY = sin(rotation - 1.57);
+	printf("Death Movement: %f\n", death_movement_increase);
+
+	float rotation_variance = 0;
+
+	for(auto i: GeometricShapes::player)
+	{
+		float tempUnitX = cos(rotation + rotation_variance);	//Centered
+		float tempUnitY = sin(rotation + rotation_variance);
+
+		float new_start_x = start_x + (tempUnitX * death_movement_increase);
+		float new_start_y = start_y + (tempUnitY * death_movement_increase);
+		printf("New X [%f] New Y [%f]\n",new_start_x, new_start_y);
+		Line tempLine;
+		tempLine = i;
+		D2D_POINT_2F newPoint = {new_start_x, new_start_y};
+		tempLine.AdjustProjection(newPoint);
+		tempLine.CenterTo(centerPoint);
+		tempLine.RotateProjection(new_start_x, new_start_y, rotation + (death_movement_increase / 100));
+		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
+		rotation_variance -= 1.57;
+	}
 }
 
 D2D1_POINT_2F Player::GetStartPoint(){return D2D1::Point2F(start_x, start_y);}

@@ -31,8 +31,9 @@ namespace Game
 	//Game Management
 	int score;
 	Text score_text;
-
 	Text death_text;
+
+	GameState game_state = GameState::Alive;
 
 	void Init();
 	void Update(float _delta);
@@ -60,10 +61,13 @@ void Game::Init()
 
 void Game::Update(float _delta)
 {
-	player.Update(_delta);
-	UpdateStarSystems(_delta);
-	UpdateAstroids(_delta);
-	UpdateOre(_delta);
+	if(game_state == GameState::Alive)
+	{
+		player.Update(_delta);
+		UpdateStarSystems(_delta);
+		UpdateAstroids(_delta);
+		UpdateOre(_delta);
+	}
 }
 
 D2D_POINT_2F out;
@@ -238,7 +242,8 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	score_text.content = "Score: " + std::to_string(score);
 	Font::Render(_renderTarget, &score_text);
 
-	if(!Game::player.alive){Font::Render(_renderTarget, &death_text);}
+	if(!player.alive){Font::Render(_renderTarget, &death_text);}
+	if(!player.alive){Game::player.DeadRender(_renderTarget);}
 
 	D2D_POINT_2F outend = {out.x + 1, out.y + 1};
 	_renderTarget->DrawLine(out, outend, COLOURS::palette["BLUE"], 4);
