@@ -357,6 +357,8 @@ public:
 
 	float death_movement_increase = 0.0f;
 
+	bool GetAlive(){return alive;}
+
 private:
 	void UpdateMovement(float _dt);
 	void UpdateBullets(float _dt);
@@ -529,23 +531,17 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 
 void Player::DeadRender(ID2D1HwndRenderTarget* _RenderTarget)
 {
-	//Calcualte the rotations of the UnitVectors
-	//float tempUnitX = cos(rotation - 1.57);	//Centered
-	//float tempUnitY = sin(rotation - 1.57);
-	printf("Death Movement: %f\n", death_movement_increase);
-
 	float rotation_variance = 0;
 
 	for(auto i: GeometricShapes::player)
 	{
-		float tempUnitX = cos(rotation + rotation_variance);	//Centered
+		float tempUnitX = cos(rotation + rotation_variance);	
 		float tempUnitY = sin(rotation + rotation_variance);
 
 		float new_start_x = start_x + (tempUnitX * death_movement_increase);
 		float new_start_y = start_y + (tempUnitY * death_movement_increase);
-		printf("New X [%f] New Y [%f]\n",new_start_x, new_start_y);
-		Line tempLine;
-		tempLine = i;
+
+		Line tempLine = i;
 		D2D_POINT_2F newPoint = {new_start_x, new_start_y};
 		tempLine.AdjustProjection(newPoint);
 		tempLine.CenterTo(centerPoint);

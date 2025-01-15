@@ -39,15 +39,10 @@ namespace Game
 	void Update(float _delta);
 	void Render(ID2D1HwndRenderTarget* _renderTarget);
 	bool HandleInput(WPARAM _wParam, bool _keyDown);
-
-	void UpdateStarSystems(float _delta);
-	
 }
 
 void Game::Init()
 {
-	//Astroid::InitalizePointList();
-	//Player::InitalizePointList();
 	player.Create();
 
 	Font::Create();
@@ -61,12 +56,20 @@ void Game::Init()
 
 void Game::Update(float _delta)
 {
+	UpdateSolarSystems(star_systems);
+	UpdateAstroids(_delta);
+	UpdateOre(_delta);
+
 	if(game_state == GameState::Alive)
 	{
 		player.Update(_delta);
-		UpdateStarSystems(_delta);
-		UpdateAstroids(_delta);
-		UpdateOre(_delta);
+		if(!player.GetAlive()){game_state = GameState::Dead;}
+	}
+
+	if(game_state == GameState::Dead)
+	{
+		player.Update(_delta);
+		if(player.GetAlive()){game_state = GameState::Alive;}
 	}
 }
 
@@ -164,64 +167,8 @@ void Game::UpdateAstroids(float _dt)
 	for(auto astroid : astroid_list)
 	{
 		D2D_POINT_2F astroid_point = D2D1::Point2F(astroid.GetX() + cameraOffsetX, astroid.GetY() + cameraOffsetY);
-		//This causes game to crash? Needs to be simplified
-
 		D2D_POINT_2F nearest = Collisions::NearestPointOnTriangle(astroid_point, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
 		if(Collisions::CircleTriangle(nearest,astroid_point, 8)){Game::player.alive = false;}
-	}
-}
-
-void Game::UpdateStarSystems(float _dt)
-{
-	//Update rendering of stars, generate new and remove old.
-	//Get the X camera offset divide by 640 then times it by the ceil version should give the start_x closest to the camera
-	
-	float temp_x = 0;
-	float temp_y = 0;
-
-	float screen_width = 640;
-	float screen_height = 480;
-
-	if(cameraOffsetX != 0){temp_x = ceil(-cameraOffsetX / screen_width);}
-	if(cameraOffsetY != 0){temp_y = ceil(-cameraOffsetY / screen_height);}
-	
-	if(star_systems.size() < 200)
-	{
-		for(int y = -1; y <= 1; y++)
-		{
-			for(int x = -1; x <= 1; x++)
-			{
-				bool system_found = false;
-
-				for(auto stars: star_systems)
-				{
-					if(stars.start_x == (temp_x  + x) * screen_width && stars.start_y == (temp_y + y) * screen_height)
-					{
-						system_found = true;
-						break;
-					}
-				}
-
-				if(!system_found)
-				{
-					SolarSystem new_star_group;
-					new_star_group.AssignXY((temp_x + x) * screen_width, (temp_y + y) * screen_height);
-					star_systems.push_back(new_star_group);
-				}
-			}
-		}
-	}
-
-
-	for(int i = 0; i < star_systems.size(); i++){
-		if(star_systems.at(i).start_x < -cameraOffsetX - 3000 || star_systems.at(i).start_x > -cameraOffsetX + 3000){
-			star_systems.erase(star_systems.begin() + i);
-			break;
-		}
-		if(star_systems.at(i).start_y < -cameraOffsetY - 3000 || star_systems.at(i).start_y > -cameraOffsetX + 3000)
-		{
-			star_systems.erase(star_systems.begin() + i);
-		}
 	}
 }
 
@@ -237,18 +184,21 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	for(auto stars: Game::star_systems){stars.Render(_renderTarget);}
 	for(auto astroid : astroid_list){astroid.Render(_renderTarget);}
 	for(auto ore: oreBuffer){ore.Render(_renderTarget);}
-	if(Game::player.alive){Game::player.Render(_renderTarget);}
-	
+
 	score_text.content = "Score: " + std::to_string(score);
 	Font::Render(_renderTarget, &score_text);
 
-	if(!player.alive){Font::Render(_renderTarget, &death_text);}
-	if(!player.alive){Game::player.DeadRender(_renderTarget);}
+	if(game_state == GameState::Alive)
+	{
+		Game::player.Render(_renderTarget);
+	}
 
-	D2D_POINT_2F outend = {out.x + 1, out.y + 1};
-	_renderTarget->DrawLine(out, outend, COLOURS::palette["BLUE"], 4);
+	if(game_state == GameState::Dead)
+	{
+		Game::player.DeadRender(_renderTarget);
+		Font::Render(_renderTarget, &death_text);
+	}
 
-	D2D1_RECT_F rectangle = {200.0f, 150.0f, 450.0f, 350.0f};
 
 }
 

@@ -32,6 +32,9 @@ cl main.cpp kernel32.lib gdi32.lib user32.lib ole32.lib d2d1.lib dwrite.lib /EHs
 float cameraOffsetX = 0;
 float cameraOffsetY = 0;
 
+const float SCREEN_WIDTH = 640;
+const float SCREEN_HEIGHT = 480;
+
 //Game headers
 #include "colours.cpp"
 #include "font.cpp"

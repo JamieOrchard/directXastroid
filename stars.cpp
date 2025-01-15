@@ -35,6 +35,8 @@ public:
 	float start_x = 0;
 	float start_y = 0;
 
+	static void UpdateSolarSystems(std::vector<SolarSystem>* _systemsVector);
+
 	Star star_map[100];
 };
 
@@ -73,6 +75,54 @@ void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		new_line.end = D2D1::Point2F(star_map[i].x + temp_end_x, star_map[i].y + temp_end_y);
 
 		_RenderTarget->DrawLine(new_line.start, new_line.end, COLOURS::palette["GREY"], 2);
+	}
+}
+
+static void UpdateSolarSystems(std::vector<SolarSystem>& _systemsVector)
+{
+	float temp_x = 0;
+	float temp_y = 0;
+
+	if(cameraOffsetX != 0){temp_x = ceil(-cameraOffsetX / SCREEN_WIDTH);}
+	if(cameraOffsetY != 0){temp_y = ceil(-cameraOffsetY / SCREEN_HEIGHT);}
+
+	if(_systemsVector.size() < 200)
+	{
+		for(int y = -1; y <= 1; y++)
+		{
+			for(int x = -1; x <= 1; x++)
+			{
+				bool system_found = false;
+
+				for(auto stars: _systemsVector)
+				{
+					if(stars.start_x == (temp_x  + x) * SCREEN_WIDTH && stars.start_y == (temp_y + y) * SCREEN_HEIGHT)
+					{
+						system_found = true;
+						break;
+					}
+				}
+
+				if(!system_found)
+				{
+					SolarSystem new_star_group;
+					new_star_group.AssignXY((temp_x + x) * SCREEN_WIDTH, (temp_y + y) * SCREEN_HEIGHT);
+					_systemsVector.push_back(new_star_group);
+				}
+			}
+		}
+	}
+
+	for(int i = 0; i < _systemsVector.size(); i++){
+		if(_systemsVector.at(i).start_x < -cameraOffsetX - 3000 || _systemsVector.at(i).start_x > -cameraOffsetX + 3000){
+			_systemsVector.erase(_systemsVector.begin() + i);
+			break;
+		}
+		if(_systemsVector.at(i).start_y < -cameraOffsetY - 3000 || _systemsVector.at(i).start_y > -cameraOffsetX + 3000)
+		{
+			_systemsVector.erase(_systemsVector.begin() + i);
+			break;
+		}
 	}
 }
 
