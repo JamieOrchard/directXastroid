@@ -4,9 +4,13 @@ A simple test in creating a game based on the aesthetic of the Astroid series, u
 
 -----------------------------
 To Do:
-Add Collisions for Objects
-Add Shooting
+Add Collisions for Objects V
+Add Shooting V
 Add Particals
+Add Pause Menu
+Add Inventory
+Add Planets
+Reduce Code Lines.
 
 ----------------------------
 Player Co-ords files
