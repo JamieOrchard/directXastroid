@@ -73,8 +73,6 @@ void Game::Update(float _delta)
 	}
 }
 
-D2D_POINT_2F out;
-
 void Game::UpdateOre(float _delta)
 {
 	std::vector<Line> lines = GeometricShapes::player;
@@ -115,6 +113,8 @@ void Game::UpdateOre(float _delta)
 	}
 }
 
+std::vector<Line> lines = GeometricShapes::player;
+
 void Game::UpdateAstroids(float _dt)
 {
 	//Astroid Movement Loop
@@ -154,7 +154,7 @@ void Game::UpdateAstroids(float _dt)
 		}
 	}
 
-	std::vector<Line> lines = GeometricShapes::player;
+	lines = GeometricShapes::player;
 	if(GeometricShapes::player.size() == 0){return;} //Safety break due to not generatic lines
 
 	for(auto& line : lines){
@@ -168,7 +168,7 @@ void Game::UpdateAstroids(float _dt)
 	{
 		D2D_POINT_2F astroid_point = D2D1::Point2F(astroid.GetX() + cameraOffsetX, astroid.GetY() + cameraOffsetY);
 		D2D_POINT_2F nearest = Collisions::NearestPointOnTriangle(astroid_point, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
-		if(Collisions::CircleTriangle(nearest,astroid_point, 8)){Game::player.alive = false;}
+		if(Collisions::CircleTriangle(nearest,astroid_point, astroid.GetCollisionSize())){Game::player.alive = false;}
 	}
 }
 
