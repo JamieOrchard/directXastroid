@@ -35,10 +35,13 @@ float cameraOffsetY = 0;
 const float SCREEN_WIDTH = 640;
 const float SCREEN_HEIGHT = 480;
 
+ID2D1HwndRenderTarget* renderTarget;
+
 //Game headers
 #include "colours.cpp"
 #include "font.cpp"
 #include "geometry.cpp"
+#include "ui.cpp"
 #include "stars.cpp"
 #include "entities.cpp"
 #include "game.cpp"
@@ -120,6 +123,7 @@ private:
 	HWND m_hwnd;
 	ID2D1Factory* m_pDirect2dFactory;
 	ID2D1HwndRenderTarget* m_pRenderTarget;
+	
 };
 
 float addition = 0;
@@ -285,6 +289,8 @@ HRESULT DemoApp::OnRender()
 
 		//Retrieve the drawing area
 		D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
+
+		renderTarget = m_pRenderTarget;
 
 		Game::Render(m_pRenderTarget);
 

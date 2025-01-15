@@ -43,6 +43,8 @@ void COLOURS::Init(ID2D1HwndRenderTarget* _renderTarget)
 	palette["ORANGE"] = m_Brush;
 }
 
+//If brush doesn't exist create it.
+
 void COLOURS::Deinit()
 {
 	/*

@@ -355,6 +355,7 @@ public:
 
 	D2D_POINT_2F GetStartPoint();
 
+	float death_movement_counter = 0.0f;
 	float death_movement_increase = 0.0f;
 
 	bool GetAlive(){return alive;}
@@ -491,7 +492,7 @@ void Player::UpdateBullets(float _dt)
 
 void Player::UpdateRespawn(float _dt)
 {
-	death_movement_increase += _dt * 100;
+	death_movement_counter += ((_dt * 100) * death_movement_increase);
 
 	if(fire){
 		fire = false;
@@ -502,6 +503,7 @@ void Player::UpdateRespawn(float _dt)
 		vecX = 0;
 		vecY = 0;
 		death_movement_increase = 0;
+		death_movement_counter = 0;
 
 		player_bullets.clear();
 	}
@@ -527,6 +529,7 @@ void Player::CheckAstroidCollisions(std::vector<Astroid>& _astroidBuffer)
 				//Calcuate Unit vector for rotation
 				float hyp = sqrt(vecX * vecX + vecY * vecY);
 				rotation = atan2(vecY / hyp, vecX / hyp);
+				death_movement_increase = hyp;
 			}
 		}
 }
@@ -541,7 +544,7 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		tempLine.AdjustProjection(newPoint);
 		tempLine.CenterTo(centerPoint);
 		tempLine.RotateProjection(start_x, start_y, rotation);
-		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
+		tempLine.Render(_RenderTarget,"WHITE", 2);
 	}
 
 	for(auto& i: player_bullets){i.Render(_RenderTarget);}
@@ -549,22 +552,24 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 
 void Player::DeadRender(ID2D1HwndRenderTarget* _RenderTarget)
 {
+	//SPAWN EXPLOSION ON POINT OF CONTACT
+	
 	float rotation_variance = -0.2;
 	//Rotational value -1.57
 
 	for(auto i: GeometricShapes::player)
 	{
-		float tempUnitX = cos(rotation + rotation_variance);	
-		float tempUnitY = sin(rotation + rotation_variance);
+		float tempUnitX = cos(rotation + rotation_variance) * sqrt((vecX * vecX) + (vecY * vecY));	
+		float tempUnitY = sin(rotation + rotation_variance) * sqrt((vecX * vecX) + (vecY * vecY));
 
-		float new_start_x = start_x + (vecX * death_movement_increase);
-		float new_start_y = start_y + (vecY * death_movement_increase);
+		float new_start_x = start_x + (tempUnitX * death_movement_counter);
+		float new_start_y = start_y + (tempUnitY * death_movement_counter);
 
 		Line tempLine = i;
 		D2D_POINT_2F newPoint = {new_start_x, new_start_y};
 		tempLine.AdjustProjection(newPoint);
 		tempLine.CenterTo(centerPoint);
-		tempLine.RotateProjection(new_start_x, new_start_y, rotation + (death_movement_increase / 100));
+		tempLine.RotateProjection(new_start_x, new_start_y, rotation + (death_movement_counter / 100));
 		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
 		rotation_variance -= 0.2;
 	}

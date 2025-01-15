@@ -17,6 +17,8 @@ public:
 	void RotateProjection(float x, float y, float rotation);
 
 	D2D_POINT_2F GetOffset();
+
+	void Render(ID2D1HwndRenderTarget* _RenderTarget, std::string _palette, float _size);
 };
 
 Line::Line()
@@ -82,6 +84,44 @@ D2D_POINT_2F Line::GetOffset()
 {
 	return D2D1::Point2F(start.x, start.y);
 }
+
+void Line::Render(ID2D1HwndRenderTarget* _RenderTarget, std::string _palette, float _size)
+{
+	_RenderTarget->DrawLine(start, end, COLOURS::palette[_palette], _size);
+}
+
+class Rect
+{
+public:
+	float x;
+	float y;
+	float w;
+	float h;
+
+	D2D1_RECT_F rect;
+	bool fill;
+
+	void Render(std::string _palette);	
+
+	void operator()(float,float,float,float);
+};
+
+void Rect::operator()(float _x, float _y, float _w, float _h)
+{
+	x = _x;
+	y = _y;
+	w = _w;
+	h = _h;
+}
+
+void Rect::Render(std::string _palette)
+{
+	rect = D2D1::RectF(x, y, x + w, y + h);
+	renderTarget->FillRectangle(&rect, COLOURS::palette[_palette]);
+}
+
+
+
 
 namespace GeometricShapes
 {

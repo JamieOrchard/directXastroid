@@ -34,6 +34,7 @@ namespace Game
 	Text death_text;
 
 	GameState game_state = GameState::Alive;
+	GameState prev_state = GameState::Alive;
 
 	void Init();
 	void Update(float _delta);
@@ -59,6 +60,15 @@ void Game::Update(float _delta)
 	UpdateSolarSystems(star_systems);
 	UpdateAstroids(_delta);
 	UpdateOre(_delta);
+	InventoryMenu::Tick(_delta);
+
+	if(InventoryMenu::active){
+		if(game_state != GameState::Inventory){prev_state = game_state;}
+		game_state = GameState::Inventory;
+	}
+	else{game_state = prev_state;}
+
+	printf("menu %d\n", game_state);
 
 	if(game_state == GameState::Alive)
 	{
@@ -159,6 +169,7 @@ void Game::UpdateAstroids(float _dt)
 bool Game::HandleInput(WPARAM _wParam, bool _keyDown)
 {
 	if(player.HandleInput(_wParam, _keyDown)){return true;}
+	if(InventoryMenu::HandleEvents(_wParam, _keyDown)){return true;}
 	return false;
 }
 
@@ -172,6 +183,10 @@ void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
 	score_text.content = "Score: " + std::to_string(score);
 	Font::Render(_renderTarget, &score_text);
 
+	if(game_state == GameState::Inventory)
+	{
+		InventoryMenu::Render(_renderTarget);
+	}
 	if(game_state == GameState::Alive)
 	{
 		Game::player.Render(_renderTarget);
