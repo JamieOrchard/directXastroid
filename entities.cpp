@@ -351,7 +351,7 @@ public:
 	void Update(float _dt);
 	void Render(ID2D1HwndRenderTarget*);
 	void DeadRender(ID2D1HwndRenderTarget*);
-	void CheckAstroidCollisions(Astroid* _astroid);
+	void CheckAstroidCollisions(std::vector<Astroid>& _astroidBuffer);
 
 	D2D_POINT_2F GetStartPoint();
 
@@ -507,9 +507,28 @@ void Player::UpdateRespawn(float _dt)
 	}
 }
 
-void Player::CheckAstroidCollisions(Astroid* _astroid)
+void Player::CheckAstroidCollisions(std::vector<Astroid>& _astroidBuffer)
 {
-	//Collisions::NearestPointOnTriangle()
+		if(GeometricShapes::player.size() == 0){return;}
+		std::vector<Line> lines = GeometricShapes::player;
+		for(auto& line : lines){
+			line.AdjustProjection(GetStartPoint());
+			line.CenterTo(centerPoint);
+			line.RotateProjection(start_x, start_y, rotation);
+		}
+
+		for(auto astroid : _astroidBuffer){
+			D2D_POINT_2F astroidPoint = D2D1::Point2F(astroid.GetX() + cameraOffsetX, astroid.GetY() + cameraOffsetY);
+			D2D_POINT_2F nearestPoint = Collisions::NearestPointOnTriangle(astroidPoint, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
+			if(Collisions::CircleTriangle(nearestPoint, astroidPoint, astroid.GetCollisionSize())){
+				alive = false;
+				vecX = astroid.vecX;
+				vecY = astroid.vecY;
+				//Calcuate Unit vector for rotation
+				float hyp = sqrt(vecX * vecX + vecY * vecY);
+				rotation = atan2(vecY / hyp, vecX / hyp);
+			}
+		}
 }
 
 void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
@@ -524,22 +543,22 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		tempLine.RotateProjection(start_x, start_y, rotation);
 		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
 	}
-	//_RenderTarget->DrawRectangle(&movement_box, COLOURS::palette["GREY"]);
 
 	for(auto& i: player_bullets){i.Render(_RenderTarget);}
 }
 
 void Player::DeadRender(ID2D1HwndRenderTarget* _RenderTarget)
 {
-	float rotation_variance = 0;
+	float rotation_variance = -0.2;
+	//Rotational value -1.57
 
 	for(auto i: GeometricShapes::player)
 	{
 		float tempUnitX = cos(rotation + rotation_variance);	
 		float tempUnitY = sin(rotation + rotation_variance);
 
-		float new_start_x = start_x + (tempUnitX * death_movement_increase);
-		float new_start_y = start_y + (tempUnitY * death_movement_increase);
+		float new_start_x = start_x + (vecX * death_movement_increase);
+		float new_start_y = start_y + (vecY * death_movement_increase);
 
 		Line tempLine = i;
 		D2D_POINT_2F newPoint = {new_start_x, new_start_y};
@@ -547,7 +566,7 @@ void Player::DeadRender(ID2D1HwndRenderTarget* _RenderTarget)
 		tempLine.CenterTo(centerPoint);
 		tempLine.RotateProjection(new_start_x, new_start_y, rotation + (death_movement_increase / 100));
 		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
-		rotation_variance -= 1.57;
+		rotation_variance -= 0.2;
 	}
 }
 

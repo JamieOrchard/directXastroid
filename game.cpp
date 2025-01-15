@@ -63,6 +63,8 @@ void Game::Update(float _delta)
 	if(game_state == GameState::Alive)
 	{
 		player.Update(_delta);
+		player.CheckAstroidCollisions(astroid_list);
+
 		if(!player.GetAlive()){game_state = GameState::Dead;}
 	}
 
@@ -119,7 +121,6 @@ void Game::UpdateAstroids(float _dt)
 {
 	//Astroid Movement Loop
 	for(auto& astroid : astroid_list){astroid.Update(_dt);}
-	
 
 	//Check if new astroids can spawn
 	int count = 0;
@@ -152,23 +153,6 @@ void Game::UpdateAstroids(float _dt)
 				bullets.current_life = bullets.MAX_LIFESPAN;
 			}
 		}
-	}
-
-	lines = GeometricShapes::player;
-	if(GeometricShapes::player.size() == 0){return;} //Safety break due to not generatic lines
-
-	for(auto& line : lines){
-		line.AdjustProjection(player.GetStartPoint());
-		line.CenterTo(player.centerPoint);
-		line.RotateProjection(player.start_x, player.start_y, player.rotation);
-	}
-
-	//Player Collision Detection
-	for(auto astroid : astroid_list)
-	{
-		D2D_POINT_2F astroid_point = D2D1::Point2F(astroid.GetX() + cameraOffsetX, astroid.GetY() + cameraOffsetY);
-		D2D_POINT_2F nearest = Collisions::NearestPointOnTriangle(astroid_point, lines.at(0).GetOffset(), lines.at(1).GetOffset(), lines.at(2).GetOffset());
-		if(Collisions::CircleTriangle(nearest,astroid_point, astroid.GetCollisionSize())){Game::player.alive = false;}
 	}
 }
 
