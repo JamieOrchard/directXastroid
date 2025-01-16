@@ -29,7 +29,7 @@ public:
 
 	void Create();
 	void AssignXY(float _x, float _y);
-	void Render(ID2D1HwndRenderTarget* _RenderTarget);
+	void Render();
 	void Destroy();
 
 	float start_x = 0;
@@ -52,7 +52,7 @@ void SolarSystem::AssignXY(float _x, float _y)
 	Create();
 }
 
-void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget)
+void SolarSystem::Render()
 {
 	float temp_start_x = start_x + cameraOffsetX;
 	float temp_start_y = start_y + cameraOffsetY;
@@ -73,8 +73,7 @@ void SolarSystem::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		Line new_line;
 		new_line.start = D2D1::Point2F(star_map[i].x + temp_start_x, star_map[i].y + temp_start_y);
 		new_line.end = D2D1::Point2F(star_map[i].x + temp_end_x, star_map[i].y + temp_end_y);
-
-		_RenderTarget->DrawLine(new_line.start, new_line.end, COLOURS::palette["GREY"], 2);
+		new_line.Render("GREY", 2);
 	}
 }
 

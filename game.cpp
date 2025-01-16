@@ -38,7 +38,7 @@ namespace Game
 
 	void Init();
 	void Update(float _delta);
-	void Render(ID2D1HwndRenderTarget* _renderTarget);
+	void Render();
 	bool HandleInput(WPARAM _wParam, bool _keyDown);
 }
 
@@ -67,8 +67,6 @@ void Game::Update(float _delta)
 		game_state = GameState::Inventory;
 	}
 	else{game_state = prev_state;}
-
-	printf("menu %d\n", game_state);
 
 	if(game_state == GameState::Alive)
 	{
@@ -173,29 +171,29 @@ bool Game::HandleInput(WPARAM _wParam, bool _keyDown)
 	return false;
 }
 
-void Game::Render(ID2D1HwndRenderTarget* _renderTarget)
+void Game::Render()
 {
 	//Draw the Stars, Astroids and Player
-	for(auto stars: Game::star_systems){stars.Render(_renderTarget);}
-	for(auto astroid : astroid_list){astroid.Render(_renderTarget);}
-	for(auto ore: oreBuffer){ore.Render(_renderTarget);}
+	for(auto stars: Game::star_systems){stars.Render();}
+	for(auto astroid : astroid_list){astroid.Render();}
+	for(auto ore: oreBuffer){ore.Render();}
 
 	score_text.content = "Score: " + std::to_string(score);
-	Font::Render(_renderTarget, &score_text);
+	Font::Render(&score_text);
 
 	if(game_state == GameState::Inventory)
 	{
-		InventoryMenu::Render(_renderTarget);
+		InventoryMenu::Render();
 	}
 	if(game_state == GameState::Alive)
 	{
-		Game::player.Render(_renderTarget);
+		Game::player.Render();
 	}
 
 	if(game_state == GameState::Dead)
 	{
-		Game::player.DeadRender(_renderTarget);
-		Font::Render(_renderTarget, &death_text);
+		Game::player.DeadRender();
+		Font::Render(&death_text);
 	}
 
 

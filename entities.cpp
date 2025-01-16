@@ -34,7 +34,7 @@ public:
 	void Destroy();
 
 	void Update(float _dt);
-	void Render(ID2D1HwndRenderTarget* _RenderTarget);
+	void Render();
 
 	void IncreaseRot(float _rot){rotation += _rot;}
 	void  SetRotation(float _rot){rotation = _rot;}
@@ -104,7 +104,7 @@ void Astroid::Update(float _dt)
 	if(vecY < 0 && y + cameraOffsetY <    0 - BORDER_BOUNDARIES){Create();}	
 }
 
-void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget)
+void Astroid::Render()
 {
 	std::vector<Line>* astroid_size;
 	if(size == 3){astroid_size = &GeometricShapes::astroids_size_3;}
@@ -122,7 +122,8 @@ void Astroid::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		centerPoint = centerPoint << size; //Bit Shift based on size
 		tempLine.CenterTo(centerPoint);
 		tempLine.RotateProjection(x + cameraOffsetX, y + cameraOffsetY, rotation);
-		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["CYAN"], 2);
+		tempLine.Render("CYAN", 2);
+		//renderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["CYAN"], 2);
 	}
 }	
 
@@ -196,7 +197,7 @@ public:
 	void CreateOnAstroid(int _size, float _x, float _y);
 	void CheckCollision(std::vector<Line>& _points);
 	void Update();
-	void Render(ID2D1HwndRenderTarget* _RenderTarget);
+	void Render();
 	void Destroy();
 
 	float GetX(){return ellipse.point.x;}
@@ -251,7 +252,7 @@ void Ore::CheckCollision(std::vector<Line>& _points)
 
 }
 
-void Ore::Render(ID2D1HwndRenderTarget* _RenderTarget)
+void Ore::Render()
 {
 	std::string colour;
 	switch(ore_type)
@@ -272,7 +273,7 @@ void Ore::Render(ID2D1HwndRenderTarget* _RenderTarget)
 	temp = ellipse;
 	temp.point.x = ellipse.point.x + cameraOffsetX;
 	temp.point.y = ellipse.point.y + cameraOffsetY;
-	_RenderTarget->DrawEllipse(&temp, COLOURS::palette[colour], 2, NULL);
+	renderTarget->DrawEllipse(&temp, COLOURS::palette[colour], 2, NULL);
 }
 
 class Bullet : public BaseEntity
@@ -286,7 +287,7 @@ public:
 
 	void Create(float _x, float _y, float _vecX, float _vecY);
 	void Update(float _dt);
-	void Render(ID2D1HwndRenderTarget* _RenderTarget);
+	void Render();
 	bool CheckAlive();
 	void Destroy();
 };
@@ -306,12 +307,12 @@ void Bullet::Update(float _dt)
 	current_life = current_life + _dt;	
 }
 
-void Bullet::Render(ID2D1HwndRenderTarget* _RenderTarget)
+void Bullet::Render()
 {
 	Line new_line;
 	new_line.start = D2D1::Point2F(x + cameraOffsetX, y + cameraOffsetY);
 	new_line.end = D2D1::Point2F(x + cameraOffsetX + (10 * vecX) , y + cameraOffsetY + (10 * vecY));
-	_RenderTarget->DrawLine(new_line.start, new_line.end, COLOURS::palette["RED"], 2);
+	new_line.Render("RED", 2);
 }
 
 bool Bullet::CheckAlive()
@@ -349,8 +350,8 @@ public:
 	void Create();
 	bool HandleInput(WPARAM, bool);
 	void Update(float _dt);
-	void Render(ID2D1HwndRenderTarget*);
-	void DeadRender(ID2D1HwndRenderTarget*);
+	void Render();
+	void DeadRender();
 	void CheckAstroidCollisions(std::vector<Astroid>& _astroidBuffer);
 
 	D2D_POINT_2F GetStartPoint();
@@ -534,7 +535,7 @@ void Player::CheckAstroidCollisions(std::vector<Astroid>& _astroidBuffer)
 		}
 }
 
-void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
+void Player::Render()
 {
 	for(auto i: GeometricShapes::player)
 	{
@@ -544,13 +545,13 @@ void Player::Render(ID2D1HwndRenderTarget* _RenderTarget)
 		tempLine.AdjustProjection(newPoint);
 		tempLine.CenterTo(centerPoint);
 		tempLine.RotateProjection(start_x, start_y, rotation);
-		tempLine.Render(_RenderTarget,"WHITE", 2);
+		tempLine.Render("WHITE", 2);
 	}
 
-	for(auto& i: player_bullets){i.Render(_RenderTarget);}
+	for(auto& i: player_bullets){i.Render();}
 }
 
-void Player::DeadRender(ID2D1HwndRenderTarget* _RenderTarget)
+void Player::DeadRender()
 {
 	//SPAWN EXPLOSION ON POINT OF CONTACT
 	
@@ -570,7 +571,7 @@ void Player::DeadRender(ID2D1HwndRenderTarget* _RenderTarget)
 		tempLine.AdjustProjection(newPoint);
 		tempLine.CenterTo(centerPoint);
 		tempLine.RotateProjection(new_start_x, new_start_y, rotation + (death_movement_counter / 100));
-		_RenderTarget->DrawLine(tempLine.start, tempLine.end, COLOURS::palette["WHITE"], 2);
+		tempLine.Render("WHITE", 2);
 		rotation_variance -= 0.2;
 	}
 }

@@ -31,7 +31,7 @@ namespace InventoryMenu
 	//Render a Square
 	void Tick(float _dt);
 	bool HandleEvents(WPARAM wParam, bool keyDown);
-	void Render(ID2D1HwndRenderTarget* _RenderTarget);
+	void Render();
 }
 
 void InventoryMenu::Tick(float _dt)
@@ -54,7 +54,7 @@ bool InventoryMenu::HandleEvents(WPARAM wParam, bool keyDown)
 	return false;
 }
 
-void InventoryMenu::Render(ID2D1HwndRenderTarget* _RenderTarget)
+void InventoryMenu::Render()
 {
 	square(100, 100, 440, 280);
 	square.Render("BLUE");

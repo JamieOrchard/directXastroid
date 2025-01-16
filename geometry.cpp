@@ -18,7 +18,7 @@ public:
 
 	D2D_POINT_2F GetOffset();
 
-	void Render(ID2D1HwndRenderTarget* _RenderTarget, std::string _palette, float _size);
+	void Render(std::string _palette, float _size);
 };
 
 Line::Line()
@@ -85,9 +85,9 @@ D2D_POINT_2F Line::GetOffset()
 	return D2D1::Point2F(start.x, start.y);
 }
 
-void Line::Render(ID2D1HwndRenderTarget* _RenderTarget, std::string _palette, float _size)
+void Line::Render(std::string _palette, float _size)
 {
-	_RenderTarget->DrawLine(start, end, COLOURS::palette[_palette], _size);
+	renderTarget->DrawLine(start, end, COLOURS::palette[_palette], _size);
 }
 
 class Rect

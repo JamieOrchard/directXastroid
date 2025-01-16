@@ -32,7 +32,7 @@ namespace Font
 
 	void Create();
 	void Update();
-	void Render(ID2D1HwndRenderTarget* _renderTarget, Text* _text);
+	void Render(Text* _text);
 }
 
 void Font::Create()
@@ -61,19 +61,19 @@ void Font::Create()
 	font_initalised = true;
 }
 
-void Font::Render(ID2D1HwndRenderTarget* _renderTarget, Text* _text)
+void Font::Render(Text* _text)
 {
 	if(!font_initalised){return;}
 	if(!_text->is_loaded){return;}
 
-	D2D1_SIZE_F renderTargetSize = _renderTarget->GetSize();
+	D2D1_SIZE_F renderTargetSize = renderTarget->GetSize();
 
 	//Do silly string conversion
 	std::wstring wide_string = std::wstring(_text->content.begin(), _text->content.end());
 	const wchar_t* result = wide_string.c_str();
 
 	
-	_renderTarget->DrawText(
+	renderTarget->DrawText(
 		result,
 		wide_string.size(),
 		m_pTextFormat,

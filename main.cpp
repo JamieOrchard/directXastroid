@@ -292,7 +292,7 @@ HRESULT DemoApp::OnRender()
 
 		renderTarget = m_pRenderTarget;
 
-		Game::Render(m_pRenderTarget);
+		Game::Render();
 
 
 
